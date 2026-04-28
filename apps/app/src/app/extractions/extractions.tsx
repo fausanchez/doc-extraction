@@ -34,7 +34,20 @@ export function Extractions() {
         try {
             const res = await extractionsApi.start(Number(docId), Number(templateId))
             if (res.error) {
-                toast.error(res.message)
+                // Quota responses ship a `usage` field — surface them with an
+                // upgrade affordance instead of a generic error toast.
+                if ('usage' in res) {
+                    toast.error(res.message, {
+                        action: {
+                            label: 'See plans',
+                            onClick: () => {
+                                window.location.href = '/billing'
+                            }
+                        }
+                    })
+                } else {
+                    toast.error(res.message)
+                }
                 return
             }
             toast.success('Extraction started')

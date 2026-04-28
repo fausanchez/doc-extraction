@@ -15,6 +15,13 @@
       "when": 1777383225074,
       "tag": "0001_session_token_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777383225075,
+      "tag": "0002_products_prices",
+      "breakpoints": true
     }
   ]
 }

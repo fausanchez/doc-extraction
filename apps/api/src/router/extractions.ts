@@ -8,6 +8,7 @@ import { zValidator } from '@/lib/utils'
 import { idParamSchema } from '@/lib/validators'
 import { rateLimit, keyByUser } from '@/middleware/rate-limit'
 import { processExtraction } from '@/lib/extraction'
+import { assertExtractionAllowed } from '@/lib/products'
 
 const router = new Hono<{ Bindings: CloudflareBindings; Variables: { userId: number; role: string } }>()
 
@@ -60,6 +61,24 @@ router.post(
         const { documentId, templateId } = c.req.valid('json')
         const db = drizzle(c.env.DB)
 
+        // Credit gate first — fail fast and don't waste a DB lookup on the
+        // document/template if the user is already over their plan limit.
+        const gate = await assertExtractionAllowed(db, userId)
+        if (!gate.allowed) {
+            // 402 Payment Required surfaces the quota cause distinctly from
+            // a 429 (rate limit) or a 400 (validation).
+            return c.json(
+                {
+                    data: null,
+                    error: true,
+                    message: gate.message,
+                    usage: gate.usage,
+                    product: { slug: gate.product.slug, name: gate.product.name }
+                },
+                402
+            )
+        }
+
         const [doc] = await db
             .select()
             .from(documents)
@@ -80,9 +99,19 @@ router.post(
             return c.json({ data: null, error: true, message: 'Template not found' }, 404)
         }
 
+        // Persist `createdAt` as ms-epoch explicitly so the rolling-window
+        // usage query can do a clean integer comparison; the column's SQLite
+        // default would otherwise store the value as a CURRENT_TIMESTAMP
+        // string, which doesn't compare against integers cleanly.
         const [extraction] = await db
             .insert(extractions)
-            .values({ documentId, templateId, userId, status: 'pending' })
+            .values({
+                documentId,
+                templateId,
+                userId,
+                status: 'pending',
+                createdAt: Date.now()
+            })
             .returning()
 
         await db.update(documents).set({ status: 'processing' }).where(eq(documents.id, documentId))

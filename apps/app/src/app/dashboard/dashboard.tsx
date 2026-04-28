@@ -2,10 +2,11 @@ import { useLoaderData } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/ui/card.tsx'
 import { Badge } from '@repo/ui/components/ui/badge.tsx'
 import { FileText, LayoutTemplate, Cpu, CheckCircle } from 'lucide-react'
+import { UsageCard } from '@/components/usage/usage-card'
 import type { route } from './route'
 
 export function Dashboard() {
-    const { stats } = useLoaderData<typeof route.loader>()
+    const { stats, usage } = useLoaderData<typeof route.loader>()
 
     return (
         <div className="flex flex-col gap-6">
@@ -15,6 +16,8 @@ export function Dashboard() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <UsageCard data={usage} />
+
                 <Card>
                     <CardHeader className="flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Documents</CardTitle>

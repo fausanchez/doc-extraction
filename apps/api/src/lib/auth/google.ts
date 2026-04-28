@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/d1'
 import { users } from '@/db/schema'
 import { HTTPException } from 'hono/http-exception'
+import { getDefaultProduct } from '@/lib/products'
 
 type GoogleIdTokenPayload = {
     iss: string
@@ -177,6 +178,11 @@ export async function upsertGoogleUser(db: ReturnType<typeof drizzle>, payload: 
         return user!
     }
 
+    // First-time signup: pin the user to the catalogue's default product (Free).
+    // Done at insert time so every user row has a non-NULL `productId` and
+    // downstream usage code never has to second-guess the assignment.
+    const defaultProduct = await getDefaultProduct(db)
+
     const [user] = await db
         .insert(users)
         .values({
@@ -184,7 +190,8 @@ export async function upsertGoogleUser(db: ReturnType<typeof drizzle>, payload: 
             name: payload.name ?? '',
             avatar: payload.picture ?? '',
             provider: 'google',
-            providerId: payload.sub
+            providerId: payload.sub,
+            productId: defaultProduct?.id ?? null
         })
         .returning()
     return user!

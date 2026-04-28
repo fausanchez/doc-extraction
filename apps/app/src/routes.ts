@@ -1,4 +1,5 @@
 import { ErrorBoundary } from './app/error-boundary/error-boundary'
+import { route as billingRoute } from './app/billing/route'
 import { route as dashboardRoute } from './app/dashboard/route'
 import { route as documentsRoute } from './app/documents/route'
 import { route as extractionsRoute } from './app/extractions/route'
@@ -25,7 +26,14 @@ export const routes: RouteObject[] = [
     {
         ...layoutRoute,
         ErrorBoundary,
-        children: [dashboardRoute, documentsRoute, templatesRoute, extractionsRoute, profileRoute]
+        children: [
+            dashboardRoute,
+            documentsRoute,
+            templatesRoute,
+            extractionsRoute,
+            billingRoute,
+            profileRoute
+        ]
     },
     notFoundRoute
 ]
