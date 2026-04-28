@@ -20,13 +20,69 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
     return btoa(binary)
 }
 
-function parseJsonFromText(text: string): unknown {
-    // Handle markdown code blocks: ```json ... ``` or ``` ... ```
-    const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/)
-    if (fenced) return JSON.parse(fenced[1].trim())
-    // Fallback: find the first { ... } block
-    const raw = text.match(/\{[\s\S]*\}/)
-    if (raw) return JSON.parse(raw[0])
+// Extract a balanced `{...}` block from `text` starting at `from` using a
+// linear scan with a brace-depth counter. Replaces the previous greedy regex
+// (`/\{[\s\S]*\}/`) which could trigger catastrophic backtracking on inputs
+// without a closing brace.
+function findJsonObject(text: string, from = 0): string | null {
+    const start = text.indexOf('{', from)
+    if (start === -1) return null
+
+    let depth = 0
+    let inString = false
+    let escape = false
+
+    for (let i = start; i < text.length; i++) {
+        const ch = text[i]
+
+        if (escape) {
+            escape = false
+            continue
+        }
+        if (ch === '\\') {
+            escape = true
+            continue
+        }
+        if (ch === '"') {
+            inString = !inString
+            continue
+        }
+        if (inString) continue
+
+        if (ch === '{') depth++
+        else if (ch === '}') {
+            depth--
+            if (depth === 0) return text.slice(start, i + 1)
+        }
+    }
+    return null
+}
+
+// Cap the input we scan to bound the worst-case work per extraction.
+const MAX_PARSE_LEN = 200_000
+
+function parseJsonFromText(rawText: string): unknown {
+    const text = rawText.length > MAX_PARSE_LEN ? rawText.slice(0, MAX_PARSE_LEN) : rawText
+
+    // 1. Markdown code fence: ```json\n...\n``` or ```\n...\n```
+    const fenceStart = text.indexOf('```')
+    if (fenceStart !== -1) {
+        const afterOpen = fenceStart + 3
+        const newline = text.indexOf('\n', afterOpen)
+        // Skip an optional language tag (max 20 chars) on the opening fence.
+        const contentStart =
+            newline !== -1 && newline - afterOpen < 20 ? newline + 1 : afterOpen
+        const fenceEnd = text.indexOf('```', contentStart)
+        if (fenceEnd !== -1) {
+            return JSON.parse(text.slice(contentStart, fenceEnd).trim())
+        }
+    }
+
+    // 2. First balanced `{...}` block
+    const block = findJsonObject(text)
+    if (block) return JSON.parse(block)
+
+    // 3. Fallback: parse the entire string
     return JSON.parse(text.trim())
 }
 

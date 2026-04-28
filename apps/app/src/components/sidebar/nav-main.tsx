@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router'
 import { SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@repo/ui/components/ui/sidebar.tsx'
-import { cn } from '@repo/ui/lib/utils.ts'
 import type { LucideIcon } from 'lucide-react'
 
 interface NavItem {

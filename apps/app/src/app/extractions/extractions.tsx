@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@repo/ui/components/ui/label.tsx'
 import { Cpu, Play } from 'lucide-react'
 import { useState } from 'react'
-import { extractionsApi, documentsApi, templatesApi, type Extraction } from '@/api-client'
+import { extractionsApi, type Extraction } from '@/api-client'
 import { toast } from 'sonner'
 import type { route } from './route'
 

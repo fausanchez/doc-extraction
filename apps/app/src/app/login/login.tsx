@@ -23,6 +23,16 @@ declare const google: {
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID ?? ''
 
+const GITHUB_OAUTH_STATE_KEY = 'oauth_state_github'
+
+// Cryptographically-random state value bound to the browser session. GitHub
+// returns the same value on callback; mismatch implies a CSRF attempt.
+function generateOAuthState(): string {
+    const bytes = new Uint8Array(32)
+    crypto.getRandomValues(bytes)
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 export function Login() {
     const navigate = useNavigate()
     const setToken = useSetAtom(tokenAtom)
@@ -33,7 +43,16 @@ export function Login() {
         const params = new URLSearchParams(window.location.search)
         const code = params.get('code')
         const provider = params.get('provider')
+        const returnedState = params.get('state')
         if (code && provider === 'github') {
+            const expectedState = sessionStorage.getItem(GITHUB_OAUTH_STATE_KEY)
+            sessionStorage.removeItem(GITHUB_OAUTH_STATE_KEY)
+            // Strip the OAuth params from the URL so a refresh can't replay them.
+            window.history.replaceState({}, '', '/login')
+            if (!expectedState || !returnedState || expectedState !== returnedState) {
+                toast.error('Invalid sign-in attempt. Please try again.')
+                return
+            }
             handleGitHubCallback(code)
         }
     }, [])
@@ -91,8 +110,17 @@ export function Login() {
             toast.error('GitHub Client ID is not configured')
             return
         }
+        const state = generateOAuthState()
+        sessionStorage.setItem(GITHUB_OAUTH_STATE_KEY, state)
         const redirectUri = `${window.location.origin}/login?provider=github`
-        window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
+        const params = new URLSearchParams({
+            client_id: GITHUB_CLIENT_ID,
+            redirect_uri: redirectUri,
+            scope: 'user:email',
+            state,
+            allow_signup: 'true'
+        })
+        window.location.href = `https://github.com/login/oauth/authorize?${params.toString()}`
     }
 
     return (
