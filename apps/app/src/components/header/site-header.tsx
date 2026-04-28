@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avat
 import { Link, useLocation, useMatches, useNavigate } from 'react-router'
 import { useMemo } from 'react'
 import { useSetAtom, useAtomValue } from 'jotai'
-import { refreshTokenAtom, tokenAtom, userAtom } from '@/stores/auth'
+import { tokenAtom, userAtom } from '@/stores/auth'
 import { authApi } from '@/api-client'
 import { urlDashboard, urlLogin } from '@/urls'
 import { cn } from '@repo/ui/lib/utils.ts'
@@ -29,19 +29,17 @@ export function SiteHeader() {
     const location = useLocation()
     const navigate = useNavigate()
     const setToken = useSetAtom(tokenAtom)
-    const setRefreshToken = useSetAtom(refreshTokenAtom)
     const setUser = useSetAtom(userAtom)
     const user = useAtomValue(userAtom)
-    const refreshToken = useAtomValue(refreshTokenAtom)
 
     const handleLogout = async () => {
+        // Server-side revocation; ignore errors so logout always succeeds locally.
         try {
-            await authApi.logout(refreshToken)
+            await authApi.logout()
         } catch {
-            // ignore — always clear local state
+            // ignore
         }
         setToken(null)
-        setRefreshToken(null)
         setUser(null)
         navigate(urlLogin(), { viewTransition: true })
     }

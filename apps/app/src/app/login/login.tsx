@@ -1,5 +1,5 @@
 import { useSetAtom } from 'jotai'
-import { refreshTokenAtom, tokenAtom, userAtom } from '@/stores/auth'
+import { tokenAtom, userAtom } from '@/stores/auth'
 import { useNavigate } from 'react-router'
 import { urlDashboard } from '@/urls'
 import { authApi } from '@/api-client'
@@ -36,7 +36,6 @@ function generateOAuthState(): string {
 export function Login() {
     const navigate = useNavigate()
     const setToken = useSetAtom(tokenAtom)
-    const setRefreshToken = useSetAtom(refreshTokenAtom)
     const setUser = useSetAtom(userAtom)
     const [loading, setLoading] = useState<'google' | 'github' | null>(null)
 
@@ -67,7 +66,6 @@ export function Login() {
                 return
             }
             setToken(res.data.accessToken)
-            setRefreshToken(res.data.refreshToken)
             setUser(res.data.user)
             navigate(urlDashboard(), { viewTransition: true })
         } catch {
@@ -95,7 +93,6 @@ export function Login() {
                         return
                     }
                     setToken(res.data.accessToken)
-                    setRefreshToken(res.data.refreshToken)
                     setUser(res.data.user)
                     navigate(urlDashboard(), { viewTransition: true })
                 } catch {
