@@ -1,0 +1,24 @@
+---
+const APP_URL = import.meta.env.PUBLIC_APP_URL ?? 'http://localhost:5173'
+---
+
+<header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <a href="/" class="flex items-center gap-2 font-semibold">
+            <div class="flex size-7 items-center justify-center rounded-md bg-gray-900 text-white text-sm font-bold">
+                D
+            </div>
+            DocExtract
+        </a>
+        <nav class="hidden items-center gap-6 md:flex">
+            <a href="#features" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Features</a>
+            <a href="#how" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">How it works</a>
+        </nav>
+        <a
+            href={APP_URL}
+            class="inline-flex h-9 items-center gap-2 rounded-lg bg-gray-900 px-4 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+        >
+            Sign in
+        </a>
+    </div>
+</header>

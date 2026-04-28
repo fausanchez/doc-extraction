@@ -1,0 +1,11 @@
+{
+    "extends": "@repo/typescript-config/react-vite-app.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@repo/ui/*": ["./src/*"]
+        }
+    },
+    "include": ["src"],
+    "exclude": ["node_modules"]
+}

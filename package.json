@@ -1,0 +1,35 @@
+{
+    "name": "doc-extraction",
+    "private": true,
+    "scripts": {
+        "build": "turbo run build",
+        "dev": "turbo run dev",
+        "lint": "turbo run lint",
+        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "check-types": "turbo run check-types",
+
+        "deploy:develop": "turbo run deploy:develop",
+        "deploy:production": "turbo run deploy:production",
+
+        "deploy:api:develop": "pnpm --filter api deploy:develop",
+        "deploy:api:production": "pnpm --filter api deploy:production",
+        "deploy:app:develop": "pnpm --filter app deploy:develop",
+        "deploy:app:production": "pnpm --filter app deploy:production",
+        "deploy:website:develop": "pnpm --filter website deploy:develop",
+        "deploy:website:production": "pnpm --filter website deploy:production",
+
+        "db:migrate:local": "pnpm --filter api db:migrate",
+        "db:migrate:develop": "pnpm --filter api db:migrate:develop",
+        "db:migrate:production": "pnpm --filter api db:migrate:production",
+        "db:generate": "pnpm --filter api db:generate"
+    },
+    "devDependencies": {
+        "prettier": "^3.7.4",
+        "turbo": "^2.8.9",
+        "typescript": "5.9.2"
+    },
+    "packageManager": "pnpm@9.0.0",
+    "engines": {
+        "node": ">=18"
+    }
+}

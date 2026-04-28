@@ -1,0 +1,30 @@
+---
+const steps = [
+    { number: '01', title: 'Upload your document', description: 'Drag or select a PDF or image from your computer.' },
+    { number: '02', title: 'Choose a template', description: 'Select or create a JSON schema with the fields you want to extract.' },
+    { number: '03', title: 'Get the data', description: 'The AI processes the document and returns the data perfectly structured.' }
+]
+---
+
+<section id="how" class="py-24 px-6">
+    <div class="mx-auto max-w-4xl">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 sm:text-4xl">How it works</h2>
+            <p class="mt-4 text-gray-500">Three simple steps to extract the data you need.</p>
+        </div>
+
+        <div class="flex flex-col gap-8">
+            {steps.map((step, i) => (
+                <div class="flex items-start gap-6">
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-gray-900 text-white font-mono font-bold text-sm">
+                        {step.number}
+                    </div>
+                    <div class="pt-2">
+                        <h3 class="font-semibold text-gray-900 text-lg mb-1">{step.title}</h3>
+                        <p class="text-gray-500">{step.description}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+</section>

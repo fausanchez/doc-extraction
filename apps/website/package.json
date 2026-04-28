@@ -1,0 +1,25 @@
+{
+    "name": "website",
+    "type": "module",
+    "version": "0.0.1",
+    "scripts": {
+        "dev": "astro dev --port 4321",
+        "build": "astro build",
+        "build:develop": "astro build --mode develop",
+        "build:production": "astro build",
+        "preview": "astro preview",
+        "astro": "astro",
+        "deploy:develop": "pnpm build:develop && wrangler pages deploy dist --project-name doc-extraction-website --branch develop",
+        "deploy:production": "pnpm build:production && wrangler pages deploy dist --project-name doc-extraction-website"
+    },
+    "dependencies": {
+        "@tailwindcss/vite": "^4.1.18",
+        "astro": "^5.17.1",
+        "tailwindcss": "^4.1.18"
+    },
+    "devDependencies": {
+        "@types/node": "^25.3.0",
+        "typescript": "^5.9.3",
+        "wrangler": "^4.0.0"
+    }
+}

@@ -1,0 +1,9 @@
+# Copy this file to .dev.vars — it's loaded automatically by `wrangler dev`
+# NEVER commit .dev.vars
+
+JWT_SECRET=any-random-string-for-local-dev
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+ANTHROPIC_API_KEY=sk-ant-...
