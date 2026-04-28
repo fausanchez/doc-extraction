@@ -31,5 +31,8 @@ export const route = {
                 stats: { documents: 0, templates: 0, extractions: 0, done: 0, recentExtractions: [] }
             }
         }
+    },
+    handle: {
+        breadcrumb: []
     }
 }

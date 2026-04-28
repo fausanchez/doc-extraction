@@ -12,5 +12,8 @@ export const route = {
         } catch {
             return { templates: [] }
         }
+    },
+    handle: {
+        breadcrumb: [{ label: 'Templates', to: urlTemplates() }]
     }
 }
