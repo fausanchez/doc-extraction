@@ -8,24 +8,37 @@ export const zValidator = <T extends z.ZodSchema, Target extends keyof Validatio
     target: Target,
     schema: T
 ) =>
-    zv(target, schema, (result, c) => {
+    zv(target, schema, (result, _c) => {
         if (!result.success) {
             throw new HTTPException(400, { cause: result.error })
         }
     })
 
-type JwtPayload = {
+// Short-lived bearer token. Embeds the session id (`sid`) so tokens issued by
+// a revoked refresh-token chain can be tracked back to a row in `sessions`.
+export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60 // 1 hour
+
+export type AccessTokenPayload = {
     sub: number
+    sid: string
     role: string
     exp: number
 }
 
-export const generateToken = async (userId: number, role: string, secret: string) => {
-    const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 // 30 days
-    const payload: JwtPayload = { sub: userId, role, exp }
-    return await sign(payload, secret, 'HS256')
+export const generateAccessToken = async (
+    userId: number,
+    sessionId: string,
+    role: string,
+    secret: string
+): Promise<string> => {
+    const exp = Math.floor(Date.now() / 1000) + ACCESS_TOKEN_TTL_SECONDS
+    const payload: AccessTokenPayload = { sub: userId, sid: sessionId, role, exp }
+    return sign(payload, secret, 'HS256')
 }
 
-export const verifyToken = async (token: string, secret: string) => {
-    return (await verify(token, secret, 'HS256')) as JwtPayload
+export const verifyAccessToken = async (
+    token: string,
+    secret: string
+): Promise<AccessTokenPayload> => {
+    return (await verify(token, secret, 'HS256')) as AccessTokenPayload
 }

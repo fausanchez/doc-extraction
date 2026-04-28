@@ -12,7 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avat
 import { Link, useLocation, useMatches, useNavigate } from 'react-router'
 import { useMemo } from 'react'
 import { useSetAtom, useAtomValue } from 'jotai'
-import { tokenAtom, userAtom } from '@/stores/auth'
+import { refreshTokenAtom, tokenAtom, userAtom } from '@/stores/auth'
+import { authApi } from '@/api-client'
 import { urlDashboard, urlLogin } from '@/urls'
 import { cn } from '@repo/ui/lib/utils.ts'
 import { LogOut, Home } from 'lucide-react'
@@ -28,11 +29,19 @@ export function SiteHeader() {
     const location = useLocation()
     const navigate = useNavigate()
     const setToken = useSetAtom(tokenAtom)
+    const setRefreshToken = useSetAtom(refreshTokenAtom)
     const setUser = useSetAtom(userAtom)
     const user = useAtomValue(userAtom)
+    const refreshToken = useAtomValue(refreshTokenAtom)
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            await authApi.logout(refreshToken)
+        } catch {
+            // ignore — always clear local state
+        }
         setToken(null)
+        setRefreshToken(null)
         setUser(null)
         navigate(urlLogin(), { viewTransition: true })
     }

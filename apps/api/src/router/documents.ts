@@ -6,6 +6,7 @@ import { authMiddleware } from '@/middleware/auth'
 import { zValidator } from '@/lib/utils'
 import { idParamSchema } from '@/lib/validators'
 import { rateLimit, keyByUser } from '@/middleware/rate-limit'
+import { buildObjectKey, sanitizeFilename } from '@/lib/filenames'
 
 const router = new Hono<{ Bindings: CloudflareBindings; Variables: { userId: number; role: string } }>()
 
@@ -75,7 +76,8 @@ router.post(
             )
         }
 
-        const key = `${userId}/${Date.now()}-${file.name}`
+        const safeName = sanitizeFilename(file.name)
+        const key = buildObjectKey(userId, file.name)
         await c.env.BUCKET.put(key, file.stream(), {
             httpMetadata: { contentType: file.type }
         })
@@ -85,7 +87,7 @@ router.post(
             .insert(documents)
             .values({
                 userId,
-                name: file.name,
+                name: safeName,
                 filePath: key,
                 mimeType: file.type,
                 size: file.size

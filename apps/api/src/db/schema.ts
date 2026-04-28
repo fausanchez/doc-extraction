@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, integer, text, index } from 'drizzle-orm/sqlite-core'
 
 export const users = sqliteTable('users', {
     id: integer('id').primaryKey({ autoIncrement: true }),
@@ -16,14 +16,24 @@ export const users = sqliteTable('users', {
         .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
 })
 
-export const sessions = sqliteTable('sessions', {
-    id: text('id').primaryKey(),
-    userId: integer('user_id')
-        .references(() => users.id)
-        .notNull(),
-    expiresAt: integer('expires_at').notNull(),
-    createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`)
-})
+// Session = a refresh-token grant. The opaque refresh token is hashed before
+// storage so a DB leak doesn't yield usable credentials. `revokedAt` enables
+// server-side logout / rotation: a non-null value invalidates the row.
+export const sessions = sqliteTable(
+    'sessions',
+    {
+        id: text('id').primaryKey(),
+        userId: integer('user_id')
+            .references(() => users.id)
+            .notNull(),
+        // SHA-256 hex of the refresh token issued to the client.
+        tokenHash: text('token_hash').notNull().default(''),
+        expiresAt: integer('expires_at').notNull(),
+        revokedAt: integer('revoked_at'),
+        createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`)
+    },
+    (t) => [index('sessions_token_hash_idx').on(t.tokenHash)]
+)
 
 // Templates define the JSON structure for data extraction
 export const templates = sqliteTable('templates', {

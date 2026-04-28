@@ -1,33 +1,140 @@
 import ky from 'ky'
 import { getDefaultStore } from 'jotai'
-import { tokenAtom } from '@/stores/auth'
+import { refreshTokenAtom, tokenAtom, userAtom } from '@/stores/auth'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8787'
 
+export type ApiResponse<T> =
+    | { data: T; error: false }
+    | { data: null; error: true; message: string }
+
+type LoginPayload = {
+    accessToken: string
+    accessTokenExpiresIn: number
+    refreshToken: string
+    refreshTokenExpiresIn: number
+    user: { id: number; email: string; name: string; avatar: string }
+}
+
+type RefreshPayload = {
+    accessToken: string
+    accessTokenExpiresIn: number
+    refreshToken: string
+    refreshTokenExpiresIn: number
+}
+
+const store = getDefaultStore()
+
+// Refresh-token rotation must be single-flight: if multiple requests fire and
+// hit 401 simultaneously, only one /auth/refresh call should run.
+let pendingRefresh: Promise<string | null> | null = null
+
+async function refreshAccessToken(): Promise<string | null> {
+    if (pendingRefresh) return pendingRefresh
+
+    const refreshToken = store.get(refreshTokenAtom)
+    if (!refreshToken) return null
+
+    pendingRefresh = (async () => {
+        try {
+            const res = await ky.post(`${API_URL}/auth/refresh`, {
+                json: { refreshToken },
+                throwHttpErrors: false
+            })
+            if (!res.ok) {
+                clearAuth()
+                return null
+            }
+            const body = (await res.json()) as ApiResponse<RefreshPayload>
+            if (body.error) {
+                clearAuth()
+                return null
+            }
+            store.set(tokenAtom, body.data.accessToken)
+            store.set(refreshTokenAtom, body.data.refreshToken)
+            return body.data.accessToken
+        } catch {
+            clearAuth()
+            return null
+        } finally {
+            pendingRefresh = null
+        }
+    })()
+
+    return pendingRefresh
+}
+
+function clearAuth(): void {
+    store.set(tokenAtom, null)
+    store.set(refreshTokenAtom, null)
+    store.set(userAtom, null)
+}
+
+// Endpoints that must NOT trigger a refresh-and-retry — they themselves are
+// the auth surface.
+const NO_REFRESH_PATHS = ['/auth/refresh', '/auth/google', '/auth/github', '/auth/logout']
+
 const apiClient = ky.create({
     prefixUrl: API_URL,
+    retry: { limit: 0 },
     hooks: {
         beforeRequest: [
             (request) => {
-                const store = getDefaultStore()
                 const token = store.get(tokenAtom)
                 if (token) {
                     request.headers.set('Authorization', `Bearer ${token}`)
                 }
             }
+        ],
+        afterResponse: [
+            async (request, _options, response) => {
+                if (response.status !== 401) return response
+                if (NO_REFRESH_PATHS.some((p) => request.url.endsWith(p))) return response
+                if (request.headers.get('x-retry-after-refresh') === '1') return response
+
+                const newToken = await refreshAccessToken()
+                if (!newToken) return response
+
+                const retried = request.clone()
+                retried.headers.set('Authorization', `Bearer ${newToken}`)
+                retried.headers.set('x-retry-after-refresh', '1')
+                return fetch(retried)
+            }
         ]
     }
 })
 
-export type ApiResponse<T> = { data: T; error: false } | { data: null; error: true; message: string }
-
 // Auth
 export const authApi = {
     google: (code: string) =>
-        apiClient.post('auth/google', { json: { code } }).json<ApiResponse<{ token: string; user: { id: number; email: string; name: string; avatar: string } }>>(),
+        apiClient
+            .post('auth/google', { json: { code } })
+            .json<ApiResponse<LoginPayload>>(),
     github: (code: string) =>
-        apiClient.post('auth/github', { json: { code } }).json<ApiResponse<{ token: string; user: { id: number; email: string; name: string; avatar: string } }>>(),
-    me: () => apiClient.get('auth/me').json<ApiResponse<{ id: number; email: string; name: string; avatar: string; role: string }>>()
+        apiClient
+            .post('auth/github', { json: { code } })
+            .json<ApiResponse<LoginPayload>>(),
+    refresh: (refreshToken: string) =>
+        apiClient
+            .post('auth/refresh', { json: { refreshToken } })
+            .json<ApiResponse<RefreshPayload>>(),
+    logout: (refreshToken: string | null) =>
+        apiClient
+            .post('auth/logout', {
+                json: refreshToken ? { refreshToken } : {},
+                throwHttpErrors: false
+            })
+            .json<ApiResponse<null>>(),
+    me: () =>
+        apiClient.get('auth/me').json<
+            ApiResponse<{
+                id: number
+                email: string
+                name: string
+                avatar: string
+                role: string
+            }>
+        >()
 }
 
 // Documents

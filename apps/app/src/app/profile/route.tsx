@@ -1,6 +1,7 @@
 import { urlProfile } from '@/urls'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { tokenAtom, userAtom } from '@/stores/auth'
+import { refreshTokenAtom, tokenAtom, userAtom } from '@/stores/auth'
+import { authApi } from '@/api-client'
 import { Button } from '@repo/ui/components/ui/button.tsx'
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/ui/card.tsx'
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar.tsx'
@@ -10,12 +11,22 @@ import { LogOut } from 'lucide-react'
 
 function Profile() {
     const user = useAtomValue(userAtom)
+    const refreshToken = useAtomValue(refreshTokenAtom)
     const setToken = useSetAtom(tokenAtom)
+    const setRefreshToken = useSetAtom(refreshTokenAtom)
     const setUser = useSetAtom(userAtom)
     const navigate = useNavigate()
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        // Best-effort server-side revocation; ignore network errors so the
+        // user can always sign out client-side.
+        try {
+            await authApi.logout(refreshToken)
+        } catch {
+            // ignore
+        }
         setToken(null)
+        setRefreshToken(null)
         setUser(null)
         navigate(urlLogin(), { viewTransition: true })
     }
