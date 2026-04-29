@@ -7,21 +7,36 @@ interface Props {
 }
 
 const {
-    title = 'DocExtract — Extract data from documents with AI',
-    description = 'Upload PDFs and images, define the structure you want to extract, and get the data in seconds.'
+    title = 'DocExtract — Extract structured data from any document with AI',
+    description = 'The fastest way to turn PDFs and images into clean, structured JSON. Define your schema, upload a file, and get production-ready data in seconds.'
 } = Astro.props
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content={description} />
+        <meta name="theme-color" content="#0f172a" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
         <title>{title}</title>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        />
     </head>
-    <body class="bg-white text-gray-900 antialiased">
+    <body class="relative min-h-svh overflow-x-hidden bg-ink-950 text-ink-100 antialiased">
+        <div class="pointer-events-none fixed inset-0 -z-10 bg-mesh"></div>
+        <div class="pointer-events-none fixed inset-0 -z-10 bg-grid mask-fade-radial opacity-60"></div>
         <slot />
     </body>
 </html>

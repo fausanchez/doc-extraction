@@ -1,3 +1,137 @@
+/* Fonts must precede all other rules per CSS spec */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
 @import "tailwindcss";
 @source "../../../packages/ui/src";
 @import "@repo/ui/styles/theme.css";
+
+@theme {
+    --font-sans:
+        "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        sans-serif;
+    --font-mono:
+        "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, monospace;
+}
+
+@layer base {
+    html {
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+        text-rendering: optimizeLegibility;
+    }
+
+    /* Tighter, Linear-feel selection */
+    ::selection {
+        background: oklch(0.7 0.15 265 / 0.25);
+    }
+
+    /* Refined scrollbar */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--color-border);
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-muted-foreground);
+        background-clip: padding-box;
+        border: 2px solid transparent;
+        border-radius: 8px;
+    }
+}
+
+@layer utilities {
+    /* Keyboard shortcut chip */
+    .kbd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 1.25rem;
+        min-width: 1.25rem;
+        padding: 0 0.3rem;
+        border-radius: 4px;
+        background: var(--color-muted);
+        border: 1px solid var(--color-border);
+        font-family: var(--font-sans);
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--color-muted-foreground);
+        line-height: 1;
+        letter-spacing: 0;
+    }
+
+    /* Linear-style row list — hairlines between rows */
+    .row-list {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background: var(--color-card);
+    }
+    .row-list > * {
+        border-bottom: 1px solid var(--color-border);
+    }
+    .row-list > *:last-child {
+        border-bottom: none;
+    }
+
+    /* Subtle dotted/dashed empty state container */
+    .dropzone {
+        border: 1.5px dashed var(--color-border);
+        background: color-mix(
+            in oklab,
+            var(--color-muted) 40%,
+            transparent
+        );
+        transition:
+            border-color 150ms ease,
+            background-color 150ms ease;
+    }
+    .dropzone[data-active="true"] {
+        border-color: var(--color-primary);
+        background: color-mix(
+            in oklab,
+            var(--color-primary) 6%,
+            transparent
+        );
+    }
+
+    /* Tabular figures for IDs / counts */
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Subtle gradient text accent (used sparingly, Linear-like) */
+    .text-accent-gradient {
+        background: linear-gradient(
+            135deg,
+            oklch(0.55 0.18 265),
+            oklch(0.6 0.2 305)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+    }
+
+    /* Status dot */
+    .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: currentColor;
+        box-shadow: 0 0 0 3px color-mix(in oklab, currentColor 18%, transparent);
+    }
+}

@@ -1,13 +1,24 @@
-import { useLoaderData, useRevalidator } from 'react-router'
-import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/ui/card.tsx'
+import { Link, useLoaderData, useRevalidator } from 'react-router'
 import { Button } from '@repo/ui/components/ui/button.tsx'
 import { Badge } from '@repo/ui/components/ui/badge.tsx'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@repo/ui/components/ui/dialog.tsx'
-import { Label } from '@repo/ui/components/ui/label.tsx'
-import { Cpu, Play } from 'lucide-react'
-import { useState } from 'react'
-import { extractionsApi, type Extraction } from '@/api-client'
-import { toast } from 'sonner'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle
+} from '@repo/ui/components/ui/dialog.tsx'
+import {
+    Cpu,
+    Sparkles,
+    CheckCircle2,
+    AlertCircle,
+    Clock,
+    Loader2,
+    X
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { type Extraction } from '@/api-client'
+import { urlTemplate, urlTemplates } from '@/urls'
 import type { route } from './route'
 
 function statusVariant(status: string) {
@@ -16,171 +27,177 @@ function statusVariant(status: string) {
     return 'secondary'
 }
 
+function StatusIcon({ status }: { status: string }) {
+    if (status === 'done')
+        return <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+    if (status === 'error') return <AlertCircle className="size-3.5 text-destructive" />
+    if (status === 'processing')
+        return <Loader2 className="size-3.5 animate-spin text-violet-500" />
+    return <Clock className="size-3.5 text-muted-foreground" />
+}
+
 export function Extractions() {
     const { extractions, documents, templates } = useLoaderData<typeof route.loader>()
     const { revalidate } = useRevalidator()
-    const [open, setOpen] = useState(false)
-    const [docId, setDocId] = useState('')
-    const [templateId, setTemplateId] = useState('')
-    const [starting, setStarting] = useState(false)
     const [selected, setSelected] = useState<Extraction | null>(null)
 
-    const handleStart = async () => {
-        if (!docId || !templateId) {
-            toast.error('Select a document and a template')
-            return
-        }
-        setStarting(true)
-        try {
-            const res = await extractionsApi.start(Number(docId), Number(templateId))
-            if (res.error) {
-                // Quota responses ship a `usage` field — surface them with an
-                // upgrade affordance instead of a generic error toast.
-                if ('usage' in res) {
-                    toast.error(res.message, {
-                        action: {
-                            label: 'See plans',
-                            onClick: () => {
-                                window.location.href = '/billing'
-                            }
-                        }
-                    })
-                } else {
-                    toast.error(res.message)
-                }
-                return
-            }
-            toast.success('Extraction started')
-            setOpen(false)
-            revalidate()
-        } catch {
-            toast.error('Failed to start extraction')
-        } finally {
-            setStarting(false)
-        }
-    }
+    // Auto-refresh while jobs are in flight
+    useEffect(() => {
+        const inflight = extractions.some(
+            (e) => e.status === 'pending' || e.status === 'processing'
+        )
+        if (!inflight) return
+        const id = setInterval(() => revalidate(), 3000)
+        return () => clearInterval(id)
+    }, [extractions, revalidate])
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-5">
+            <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold">Extractions</h1>
-                    <p className="text-muted-foreground text-sm">Data extraction results</p>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-semibold tracking-tight">Extractions</h1>
+                        <Badge variant="secondary" className="tabular">
+                            {extractions.length}
+                        </Badge>
+                    </div>
+                    <p className="mt-0.5 text-[13px] text-muted-foreground">
+                        Jobs run against your documents. Start one from a template.
+                    </p>
                 </div>
-                <Button onClick={() => setOpen(true)} className="gap-2">
-                    <Play className="size-4" />
-                    New extraction
+                <Button asChild size="sm" className="gap-1.5">
+                    <Link to={urlTemplates()} viewTransition>
+                        <Sparkles className="size-3.5" />
+                        New extraction
+                    </Link>
                 </Button>
-            </div>
+            </header>
 
             {extractions.length === 0 ? (
-                <Card>
-                    <CardContent className="flex flex-col items-center gap-3 py-12">
-                        <Cpu className="text-muted-foreground size-10" />
-                        <p className="text-muted-foreground text-sm">No extractions yet</p>
-                        <Button variant="outline" onClick={() => setOpen(true)} className="gap-2">
-                            <Play className="size-4" />
-                            Start your first
-                        </Button>
-                    </CardContent>
-                </Card>
+                <div className="dropzone flex flex-col items-center justify-center gap-3 rounded-xl py-16">
+                    <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
+                        <Cpu className="size-5 text-muted-foreground" />
+                    </div>
+                    <div className="text-center">
+                        <p className="text-sm font-medium">No extractions yet</p>
+                        <p className="text-[13px] text-muted-foreground">
+                            Open a template and upload a document to run your first.
+                        </p>
+                    </div>
+                    <Button asChild variant="outline" size="sm" className="gap-1.5">
+                        <Link to={urlTemplates()} viewTransition>
+                            <Sparkles className="size-3.5" />
+                            Browse templates
+                        </Link>
+                    </Button>
+                </div>
             ) : (
-                <div className="flex flex-col gap-3">
+                <div className="row-list">
                     {extractions.map((ext) => {
                         const doc = documents.find((d) => d.id === ext.documentId)
                         const tmpl = templates.find((t) => t.id === ext.templateId)
                         return (
-                            <Card
+                            <button
                                 key={ext.id}
-                                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                type="button"
                                 onClick={() => setSelected(ext)}
+                                className="flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted/50"
                             >
-                                <CardHeader className="flex-row items-center justify-between py-3">
-                                    <div className="flex flex-col gap-0.5">
-                                        <CardTitle className="text-sm">{doc?.name ?? `Document #${ext.documentId}`}</CardTitle>
-                                        <span className="text-muted-foreground text-xs">
-                                            Template: {tmpl?.name ?? `#${ext.templateId}`}
-                                        </span>
-                                    </div>
-                                    <Badge variant={statusVariant(ext.status)}>{ext.status}</Badge>
-                                </CardHeader>
-                            </Card>
+                                <StatusIcon status={ext.status} />
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate text-sm font-medium">
+                                        {doc?.name ?? `Document #${ext.documentId}`}
+                                    </p>
+                                    <p className="truncate text-[11px] text-muted-foreground">
+                                        Template:{' '}
+                                        {tmpl ? (
+                                            <Link
+                                                to={urlTemplate(tmpl.id)}
+                                                viewTransition
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="hover:underline"
+                                            >
+                                                {tmpl.name}
+                                            </Link>
+                                        ) : (
+                                            `#${ext.templateId}`
+                                        )}
+                                        {' · '}
+                                        <span className="tabular">#{ext.id}</span>
+                                    </p>
+                                </div>
+                                <span className="hidden text-[11px] tabular text-muted-foreground md:block">
+                                    {new Date(ext.createdAt).toLocaleString()}
+                                </span>
+                                <Badge variant={statusVariant(ext.status)} className="capitalize">
+                                    {ext.status}
+                                </Badge>
+                            </button>
                         )
                     })}
                 </div>
             )}
 
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>New extraction</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex flex-col gap-4">
-                        <div className="grid gap-1.5">
-                            <Label>Document</Label>
-                            <select
-                                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-                                value={docId}
-                                onChange={(e) => setDocId(e.target.value)}
-                            >
-                                <option value="">Select a document</option>
-                                {documents.map((d) => (
-                                    <option key={d.id} value={d.id}>{d.name}</option>
-                                ))}
-                            </select>
+            <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+                <DialogContent className="max-h-[80vh] max-w-2xl overflow-hidden p-0">
+                    <DialogHeader className="flex-row items-center justify-between border-b px-4 py-3">
+                        <div className="flex items-center gap-2">
+                            <DialogTitle className="text-sm">
+                                Extraction #{selected?.id}
+                            </DialogTitle>
+                            {selected && (
+                                <Badge
+                                    variant={statusVariant(selected.status)}
+                                    className="capitalize"
+                                >
+                                    {selected.status}
+                                </Badge>
+                            )}
                         </div>
-                        <div className="grid gap-1.5">
-                            <Label>Template</Label>
-                            <select
-                                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-                                value={templateId}
-                                onChange={(e) => setTemplateId(e.target.value)}
-                            >
-                                <option value="">Select a template</option>
-                                {templates.map((t) => (
-                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                        <Button onClick={handleStart} disabled={starting} className="gap-2">
-                            <Play className="size-4" />
-                            {starting ? 'Starting...' : 'Start extraction'}
+                        <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => setSelected(null)}
+                            aria-label="Close"
+                        >
+                            <X className="size-3.5" />
                         </Button>
-                    </DialogFooter>
+                    </DialogHeader>
+                    <div className="max-h-[65vh] overflow-y-auto p-4">
+                        {selected?.status === 'done' && (
+                            <pre className="overflow-auto rounded-lg bg-muted p-4 font-mono text-[12px] leading-relaxed">
+                                {(() => {
+                                    try {
+                                        return JSON.stringify(
+                                            JSON.parse(selected.result || '{}'),
+                                            null,
+                                            2
+                                        )
+                                    } catch {
+                                        return selected.result || ''
+                                    }
+                                })()}
+                            </pre>
+                        )}
+                        {selected?.status === 'error' && (
+                            <p className="text-sm text-destructive">
+                                {selected.errorMessage || 'Unknown error'}
+                            </p>
+                        )}
+                        {selected?.status === 'pending' && (
+                            <p className="text-sm text-muted-foreground">
+                                The extraction is queued for processing.
+                            </p>
+                        )}
+                        {selected?.status === 'processing' && (
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Loader2 className="size-4 animate-spin" />
+                                Processing…
+                            </p>
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
-
-            {selected && (
-                <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>Extraction result #{selected.id}</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex flex-col gap-3">
-                            <Badge variant={statusVariant(selected.status)} className="self-start">
-                                {selected.status}
-                            </Badge>
-                            {selected.status === 'done' && (
-                                <pre className="rounded-lg bg-muted p-4 text-xs overflow-auto">
-                                    {JSON.stringify(JSON.parse(selected.result || '{}'), null, 2)}
-                                </pre>
-                            )}
-                            {selected.status === 'error' && (
-                                <p className="text-destructive text-sm">{selected.errorMessage || 'Unknown error'}</p>
-                            )}
-                            {selected.status === 'pending' && (
-                                <p className="text-muted-foreground text-sm">The extraction is queued for processing.</p>
-                            )}
-                            {selected.status === 'processing' && (
-                                <p className="text-muted-foreground text-sm">The extraction is being processed...</p>
-                            )}
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            )}
         </div>
     )
 }

@@ -1,8 +1,23 @@
 import { useLoaderData, useRevalidator } from 'react-router'
-import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/ui/card.tsx'
 import { Button } from '@repo/ui/components/ui/button.tsx'
 import { Badge } from '@repo/ui/components/ui/badge.tsx'
-import { Upload, Trash2, FileText } from 'lucide-react'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from '@repo/ui/components/ui/dropdown-menu.tsx'
+import {
+    Upload,
+    Trash2,
+    FileText,
+    MoreHorizontal,
+    CheckCircle2,
+    AlertCircle,
+    Clock,
+    Loader2
+} from 'lucide-react'
 import { useRef, useState } from 'react'
 import { documentsApi, type Document } from '@/api-client'
 import { toast } from 'sonner'
@@ -12,6 +27,33 @@ function statusVariant(status: string) {
     if (status === 'done') return 'default'
     if (status === 'error') return 'destructive'
     return 'secondary'
+}
+
+function StatusIcon({ status }: { status: string }) {
+    if (status === 'done')
+        return <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+    if (status === 'error') return <AlertCircle className="size-3.5 text-destructive" />
+    if (status === 'processing')
+        return <Loader2 className="size-3.5 animate-spin text-violet-500" />
+    return <Clock className="size-3.5 text-muted-foreground" />
+}
+
+function formatBytes(bytes: number) {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+}
+
+function relativeTime(ts: number) {
+    const diff = Date.now() - ts
+    const m = Math.round(diff / 60000)
+    if (m < 1) return 'just now'
+    if (m < 60) return `${m}m ago`
+    const h = Math.round(m / 60)
+    if (h < 24) return `${h}h ago`
+    const d = Math.round(h / 24)
+    if (d < 30) return `${d}d ago`
+    return new Date(ts).toLocaleDateString()
 }
 
 export function Documents() {
@@ -30,7 +72,7 @@ export function Documents() {
                 toast.error(res.message)
                 return
             }
-            toast.success('Document uploaded successfully')
+            toast.success('Document uploaded')
             revalidate()
         } catch {
             toast.error('Failed to upload document')
@@ -51,15 +93,31 @@ export function Documents() {
     }
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-5">
+            <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold">Documents</h1>
-                    <p className="text-muted-foreground text-sm">Manage your files for extraction</p>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-semibold tracking-tight">Documents</h1>
+                        <Badge variant="secondary" className="tabular">
+                            {documents.length}
+                        </Badge>
+                    </div>
+                    <p className="mt-0.5 text-[13px] text-muted-foreground">
+                        Files available for extraction. Open a template to run one.
+                    </p>
                 </div>
-                <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="gap-2">
-                    <Upload className="size-4" />
-                    {uploading ? 'Uploading...' : 'Upload document'}
+                <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    size="sm"
+                    className="gap-1.5"
+                >
+                    {uploading ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                        <Upload className="size-3.5" />
+                    )}
+                    {uploading ? 'Uploading…' : 'Upload document'}
                 </Button>
                 <input
                     ref={fileInputRef}
@@ -68,46 +126,71 @@ export function Documents() {
                     className="hidden"
                     onChange={handleUpload}
                 />
-            </div>
+            </header>
 
             {documents.length === 0 ? (
-                <Card>
-                    <CardContent className="flex flex-col items-center gap-3 py-12">
-                        <FileText className="text-muted-foreground size-10" />
-                        <p className="text-muted-foreground text-sm">No documents yet</p>
-                        <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2">
-                            <Upload className="size-4" />
-                            Upload your first
-                        </Button>
-                    </CardContent>
-                </Card>
+                <div className="dropzone flex flex-col items-center justify-center gap-3 rounded-xl py-16">
+                    <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
+                        <FileText className="size-5 text-muted-foreground" />
+                    </div>
+                    <div className="text-center">
+                        <p className="text-sm font-medium">No documents yet</p>
+                        <p className="text-[13px] text-muted-foreground">
+                            Upload a file or open a template to start an extraction.
+                        </p>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="gap-1.5"
+                    >
+                        <Upload className="size-3.5" />
+                        Upload document
+                    </Button>
+                </div>
             ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="row-list">
                     {documents.map((doc) => (
-                        <Card key={doc.id}>
-                            <CardHeader className="flex-row items-start justify-between gap-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <FileText className="text-muted-foreground size-4 shrink-0" />
-                                    <CardTitle className="text-sm truncate">{doc.name}</CardTitle>
-                                </div>
-                                <Badge variant={statusVariant(doc.status)} className="shrink-0">
+                        <div
+                            key={doc.id}
+                            className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50"
+                        >
+                            <FileText className="size-4 shrink-0 text-muted-foreground" />
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-medium">{doc.name}</p>
+                                <p className="truncate text-[11px] tabular text-muted-foreground">
+                                    {formatBytes(doc.size)} · {relativeTime(doc.createdAt)}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <StatusIcon status={doc.status} />
+                                <Badge
+                                    variant={statusVariant(doc.status)}
+                                    className="capitalize"
+                                >
                                     {doc.status}
                                 </Badge>
-                            </CardHeader>
-                            <CardContent className="flex items-center justify-between">
-                                <span className="text-muted-foreground text-xs">
-                                    {(doc.size / 1024).toFixed(1)} KB
-                                </span>
-                                <Button
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    className="text-destructive hover:text-destructive"
-                                    onClick={() => handleDelete(doc)}
-                                >
-                                    <Trash2 className="size-4" />
-                                </Button>
-                            </CardContent>
-                        </Card>
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon-sm" aria-label="Actions">
+                                        <MoreHorizontal className="size-3.5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-44">
+                                    <DropdownMenuItem disabled>Download</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        variant="destructive"
+                                        onSelect={() => handleDelete(doc)}
+                                    >
+                                        <Trash2 />
+                                        Delete
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     ))}
                 </div>
             )}
