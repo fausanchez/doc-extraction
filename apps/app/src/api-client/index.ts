@@ -276,3 +276,35 @@ export type UsageResponse = {
 export const meApi = {
     usage: () => apiClient.get('me/usage').json<ApiResponse<UsageResponse>>()
 }
+
+// API tokens
+export type ApiToken = {
+    id: number
+    name: string
+    prefix: string
+    status: 'active' | 'revoked'
+    createdAt: number
+    expiresAt: number | null
+    revokedAt: number | null
+    lastUsedAt: number | null
+    callCount: number
+}
+
+// Response shape for `apiTokensApi.create` — same as ApiToken plus the
+// plaintext `token`, which is returned exactly once.
+export type CreatedApiToken = ApiToken & { token: string }
+
+export type ApiTokenUsage = {
+    token: ApiToken
+    daily: { day: number; count: number }[]
+}
+
+export const apiTokensApi = {
+    list: () => apiClient.get('api-tokens').json<ApiResponse<ApiToken[]>>(),
+    create: (data: { name: string; expiresInDays?: number }) =>
+        apiClient.post('api-tokens', { json: data }).json<ApiResponse<CreatedApiToken>>(),
+    revoke: (id: number) =>
+        apiClient.delete(`api-tokens/${id}`).json<ApiResponse<null>>(),
+    usage: (id: number) =>
+        apiClient.get(`api-tokens/${id}/usage`).json<ApiResponse<ApiTokenUsage>>()
+}

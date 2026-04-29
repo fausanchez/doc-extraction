@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { sqliteTable, integer, text, index } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, integer, text, index, primaryKey } from 'drizzle-orm/sqlite-core'
 
 // Catalogue of access tiers. Each product encodes the limits a user gets;
 // for now the only enforced limit is `monthlyExtractionCredits` (NULL means
@@ -125,6 +125,53 @@ export const documents = sqliteTable('documents', {
         .default(sql`(CURRENT_TIMESTAMP)`)
         .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
 })
+
+// Programmatic-access credentials. Each row represents a single user-issued
+// token; the plaintext is shown to the user once at creation and only its
+// SHA-256 hash is persisted, so a DB leak does not yield usable credentials.
+// `prefix` (first 12 chars of the plaintext) is kept as the listing identifier.
+// `lastUsedAt` and `callCount` are aggregated counters for the at-a-glance
+// stats; `api_token_usage_daily` carries the per-day breakdown used by charts.
+export const apiTokens = sqliteTable(
+    'api_tokens',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        userId: integer('user_id')
+            .references(() => users.id)
+            .notNull(),
+        name: text('name').notNull(),
+        prefix: text('prefix').notNull(),
+        tokenHash: text('token_hash').notNull(),
+        // Both null-able: NULL on `expiresAt` means never expires, NULL on
+        // `revokedAt` means active.
+        expiresAt: integer('expires_at'),
+        revokedAt: integer('revoked_at'),
+        lastUsedAt: integer('last_used_at'),
+        callCount: integer('call_count').notNull().default(0),
+        createdAt: integer('created_at').notNull().default(sql`(unixepoch() * 1000)`),
+        updatedAt: integer('updated_at')
+            .notNull()
+            .default(sql`(unixepoch() * 1000)`)
+            .$onUpdate(() => sql`(unixepoch() * 1000)`)
+    },
+    (t) => [index('api_tokens_token_hash_idx').on(t.tokenHash), index('api_tokens_user_id_idx').on(t.userId)]
+)
+
+// Daily-bucket usage counter. Composite primary key on (token_id, day) lets
+// the recording path use INSERT … ON CONFLICT DO UPDATE for an atomic
+// increment.
+export const apiTokenUsageDaily = sqliteTable(
+    'api_token_usage_daily',
+    {
+        tokenId: integer('token_id')
+            .references(() => apiTokens.id)
+            .notNull(),
+        // Epoch ms of midnight UTC for the bucket day.
+        day: integer('day').notNull(),
+        count: integer('count').notNull().default(0)
+    },
+    (t) => [primaryKey({ columns: [t.tokenId, t.day] })]
+)
 
 export const extractions = sqliteTable('extractions', {
     id: integer('id').primaryKey({ autoIncrement: true }),

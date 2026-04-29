@@ -1,4 +1,5 @@
 import { ErrorBoundary } from './app/error-boundary/error-boundary'
+import { route as apiTokensRoute } from './app/api-tokens/route'
 import { route as billingRoute } from './app/billing/route'
 import { route as dashboardRoute } from './app/dashboard/route'
 import { route as documentsRoute } from './app/documents/route'
@@ -33,6 +34,7 @@ export const routes: RouteObject[] = [
             templatesRoute,
             templateDetailRoute,
             extractionsRoute,
+            apiTokensRoute,
             billingRoute,
             profileRoute
         ]

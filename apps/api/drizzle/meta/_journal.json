@@ -22,6 +22,13 @@
       "when": 1777383225075,
       "tag": "0002_products_prices",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1777383225076,
+      "tag": "0003_api_tokens",
+      "breakpoints": true
     }
   ]
 }

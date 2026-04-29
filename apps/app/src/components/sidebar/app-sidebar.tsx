@@ -29,6 +29,7 @@ import {
     User,
     ChevronsUpDown,
     CreditCard,
+    KeyRound,
     LogOut,
     Search,
     Settings,
@@ -45,6 +46,7 @@ import {
     urlExtractions,
     urlProfile,
     urlBilling,
+    urlApiTokens,
     urlLogin
 } from '@/urls'
 
@@ -52,7 +54,8 @@ const workspaceItems = [
     { title: 'Dashboard', url: urlDashboard(), icon: LayoutDashboard, kbd: 'D' },
     { title: 'Templates', url: urlTemplates(), icon: LayoutTemplate, kbd: 'T' },
     { title: 'Documents', url: urlDocuments(), icon: FileText, kbd: 'F' },
-    { title: 'Extractions', url: urlExtractions(), icon: Cpu, kbd: 'E' }
+    { title: 'Extractions', url: urlExtractions(), icon: Cpu, kbd: 'E' },
+    { title: 'API tokens', url: urlApiTokens(), icon: KeyRound, kbd: 'A' }
 ]
 
 const accountItems = [

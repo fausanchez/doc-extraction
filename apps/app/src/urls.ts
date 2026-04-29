@@ -10,3 +10,4 @@ export const urlExtractions = () => `/extractions`
 export const urlExtraction = (id: string | number) => `/extractions/${id}`
 export const urlProfile = () => `/profile`
 export const urlBilling = () => `/billing`
+export const urlApiTokens = () => `/api-tokens`
