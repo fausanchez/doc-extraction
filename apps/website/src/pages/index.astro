@@ -4,13 +4,19 @@ import Header from '../components/Header.astro'
 import Hero from '../components/Hero.astro'
 import Features from '../components/Features.astro'
 import HowItWorks from '../components/HowItWorks.astro'
+import Stats from '../components/Stats.astro'
+import CTA from '../components/CTA.astro'
 import Footer from '../components/Footer.astro'
 ---
 
 <Layout>
     <Header />
-    <Hero />
-    <Features />
-    <HowItWorks />
+    <main>
+        <Hero />
+        <Features />
+        <HowItWorks />
+        <Stats />
+        <CTA />
+    </main>
     <Footer />
 </Layout>
