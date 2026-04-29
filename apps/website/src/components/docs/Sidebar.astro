@@ -1,0 +1,99 @@
+---
+interface Props {
+    activeSection: string
+    activePage: string
+}
+
+const { activeSection, activePage } = Astro.props
+
+const sections = [
+    {
+        id: 'getting-started',
+        label: 'Getting started',
+        items: [
+            { id: 'index', label: 'Introduction', href: '/docs' },
+            { id: 'quickstart', label: 'Quickstart', href: '/docs/quickstart' },
+            { id: 'authentication', label: 'Authentication', href: '/docs/authentication' }
+        ]
+    },
+    {
+        id: 'reference',
+        label: 'API reference',
+        items: [
+            { id: 'extract', label: 'Extract document', href: '/docs/endpoints/extract', method: 'POST' },
+            { id: 'get-extraction', label: 'Get extraction', href: '/docs/endpoints/get-extraction', method: 'GET' },
+            { id: 'list-products', label: 'List products', href: '/docs/endpoints/list-products', method: 'GET' }
+        ]
+    },
+    {
+        id: 'resources',
+        label: 'Resources',
+        items: [{ id: 'errors', label: 'Errors & rate limits', href: '/docs/errors' }]
+    }
+]
+
+const methodColor = (m?: string) => {
+    if (m === 'GET') return 'text-blue-600'
+    if (m === 'POST') return 'text-green-600'
+    if (m === 'DELETE') return 'text-red-600'
+    return 'text-gray-500'
+}
+---
+
+<nav class="text-sm" aria-label="Documentation">
+    {
+        sections.map((section) => (
+            <div class="mb-6">
+                <p class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    {section.label}
+                </p>
+                <ul class="flex flex-col gap-0.5">
+                    {section.items.map((item) => {
+                        const isActive =
+                            section.id === activeSection && item.id === activePage
+                        return (
+                            <li>
+                                <a
+                                    href={item.href}
+                                    class:list={[
+                                        'flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors',
+                                        isActive
+                                            ? 'bg-gray-900 text-white'
+                                            : 'text-gray-700 hover:bg-gray-100'
+                                    ]}
+                                >
+                                    {'method' in item && item.method && (
+                                        <span
+                                            class:list={[
+                                                'inline-flex w-10 shrink-0 justify-end font-mono text-[10px] font-bold uppercase tabular-nums',
+                                                isActive
+                                                    ? 'text-white/70'
+                                                    : methodColor(item.method)
+                                            ]}
+                                        >
+                                            {item.method}
+                                        </span>
+                                    )}
+                                    <span class="truncate">{item.label}</span>
+                                </a>
+                            </li>
+                        )
+                    })}
+                </ul>
+            </div>
+        ))
+    }
+
+    <div class="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-3">
+        <p class="text-xs font-medium text-gray-900">Need a token?</p>
+        <p class="mt-1 text-xs text-gray-500">
+            Manage API tokens in the dashboard.
+        </p>
+        <a
+            href="https://app.doc-extraction.com/api-tokens"
+            class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-gray-900 hover:underline"
+        >
+            Open dashboard →
+        </a>
+    </div>
+</nav>

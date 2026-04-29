@@ -1,0 +1,217 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro'
+import CodeTabs from '../../components/docs/CodeTabs.astro'
+
+const extractCurl = `curl -X POST https://api.doc-extraction.com/v1/extract \\
+  -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE" \\
+  -F "file=@invoice.pdf" \\
+  -F "template_id=42"`
+
+const extractJs = `const form = new FormData()
+form.append('file', file) // a File or Blob
+form.append('template_id', '42')
+
+const res = await fetch('https://api.doc-extraction.com/v1/extract', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' },
+    body: form
+})
+
+const { data } = await res.json()
+console.log('queued', data.extractionId)`
+
+const extractPython = `import requests
+
+with open('invoice.pdf', 'rb') as f:
+    res = requests.post(
+        'https://api.doc-extraction.com/v1/extract',
+        headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
+        files={'file': f},
+        data={'template_id': 42},
+    )
+
+res.raise_for_status()
+print('queued', res.json()['data']['extractionId'])`
+
+const extractGo = `package main
+
+import (
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "io"
+    "mime/multipart"
+    "net/http"
+    "os"
+)
+
+func main() {
+    f, _ := os.Open("invoice.pdf")
+    defer f.Close()
+
+    var body bytes.Buffer
+    w := multipart.NewWriter(&body)
+    fw, _ := w.CreateFormFile("file", "invoice.pdf")
+    io.Copy(fw, f)
+    w.WriteField("template_id", "42")
+    w.Close()
+
+    req, _ := http.NewRequest("POST", "https://api.doc-extraction.com/v1/extract", &body)
+    req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
+    req.Header.Set("Content-Type", w.FormDataContentType())
+
+    res, _ := http.DefaultClient.Do(req)
+    defer res.Body.Close()
+
+    var out struct {
+        Data struct{ ExtractionID int \`json:"extractionId"\` } \`json:"data"\`
+    }
+    json.NewDecoder(res.Body).Decode(&out)
+    fmt.Println("queued", out.Data.ExtractionID)
+}`
+
+const extractRuby = `require 'net/http'
+require 'json'
+
+uri = URI('https://api.doc-extraction.com/v1/extract')
+req = Net::HTTP::Post.new(uri)
+req['Authorization'] = 'Bearer dx_live_YOUR_TOKEN_HERE'
+
+form = [
+  ['file', File.open('invoice.pdf')],
+  ['template_id', '42']
+]
+req.set_form(form, 'multipart/form-data')
+
+res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |http| http.request(req) }
+puts JSON.parse(res.body)['data']['extractionId']`
+
+const pollCurl = `curl https://api.doc-extraction.com/v1/extractions/123 \\
+  -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE"`
+
+const pollJs = `const res = await fetch(
+    'https://api.doc-extraction.com/v1/extractions/123',
+    { headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' } }
+)
+const { data } = await res.json()
+
+if (data.status === 'done') {
+    console.log(data.result) // your structured JSON
+}`
+
+const pollPython = `import requests
+
+res = requests.get(
+    'https://api.doc-extraction.com/v1/extractions/123',
+    headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
+)
+data = res.json()['data']
+
+if data['status'] == 'done':
+    print(data['result'])`
+
+const pollGo = `req, _ := http.NewRequest("GET",
+    "https://api.doc-extraction.com/v1/extractions/123", nil)
+req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
+res, _ := http.DefaultClient.Do(req)
+// decode res.Body and read data.status / data.result`
+
+const pollRuby = `require 'net/http'
+require 'json'
+
+uri = URI('https://api.doc-extraction.com/v1/extractions/123')
+res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+  http.get(uri.path, 'Authorization' => 'Bearer dx_live_YOUR_TOKEN_HERE')
+end
+puts JSON.parse(res.body)['data']`
+---
+
+<DocsLayout title="Quickstart" section="getting-started" page="quickstart">
+    <h1>Quickstart</h1>
+    <p class="lede">From zero to a parsed JSON in under a minute.</p>
+
+    <h2>1. Get an API token</h2>
+    <p>
+        API tokens are managed from the dashboard. They start with
+        <code>dx_live_</code> and are shown once at creation — store yours in
+        a secret manager.
+    </p>
+    <p>
+        <a href="https://app.doc-extraction.com/api-tokens">
+            Create an API token →
+        </a>
+    </p>
+
+    <h2>2. Pick or create a template</h2>
+    <p>
+        Templates define the JSON shape you want extracted. The id you pass to
+        the API is the integer id shown on the template page in the dashboard
+        (e.g. <code>42</code>).
+    </p>
+
+    <h2>3. Send a file</h2>
+    <p>
+        Upload the document and start an extraction with a single call. The
+        endpoint accepts <code>multipart/form-data</code> with a
+        <code>file</code> part (the document) and a
+        <code>template_id</code> part (the template's id).
+    </p>
+
+    <CodeTabs
+        title="Start an extraction"
+        samples={{
+            curl: extractCurl,
+            javascript: extractJs,
+            python: extractPython,
+            go: extractGo,
+            ruby: extractRuby
+        }}
+    />
+
+    <p>
+        The response is <strong>202 Accepted</strong> with the extraction id
+        and an initial status of <code>pending</code>:
+    </p>
+
+    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>{`{
+  "data": {
+    "extractionId": 7821,
+    "documentId": 4128,
+    "templateId": 42,
+    "status": "pending",
+    "createdAt": 1737830520000
+  },
+  "error": false
+}`}</code></pre>
+
+    <h2>4. Poll for the result</h2>
+    <p>
+        Extractions run asynchronously. Poll the extraction id every second or
+        two until <code>status</code> is <code>done</code>. When it is, the
+        <code>result</code> field carries your parsed JSON object directly —
+        no second decode needed.
+    </p>
+
+    <CodeTabs
+        title="Get an extraction"
+        samples={{
+            curl: pollCurl,
+            javascript: pollJs,
+            python: pollPython,
+            go: pollGo,
+            ruby: pollRuby
+        }}
+    />
+
+    <p>That's it. From here:</p>
+    <ul>
+        <li>
+            <a href="/docs/endpoints/extract">POST /v1/extract</a> — full
+            parameter reference and error codes.
+        </li>
+        <li>
+            <a href="/docs/errors">Errors &amp; rate limits</a> — what to
+            expect when things go wrong, and how to back off correctly.
+        </li>
+    </ul>
+</DocsLayout>

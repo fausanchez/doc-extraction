@@ -1,0 +1,176 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro'
+
+const codes = [
+    {
+        code: 400,
+        label: 'Bad Request',
+        when: 'Validation failed: missing form fields, malformed JSON, file too large, or content-type that does not match the file bytes.'
+    },
+    {
+        code: 401,
+        label: 'Unauthorized',
+        when: 'No <code>Authorization</code> header, malformed token, unknown token, revoked token, or expired token. The response carries a <code>WWW-Authenticate: Bearer</code> header.'
+    },
+    {
+        code: 402,
+        label: 'Payment Required',
+        when: 'Plan quota exhausted (e.g. 10 extractions / 30 days on the Free plan). Body includes <code>usage</code> and <code>product</code> so you can show the right upgrade prompt.'
+    },
+    {
+        code: 404,
+        label: 'Not Found',
+        when: "The resource doesn't exist <em>or</em> belongs to a different account. We don't distinguish to avoid leaking existence to other users."
+    },
+    {
+        code: 429,
+        label: 'Too Many Requests',
+        when: 'Rate limit hit. Response carries a <code>Retry-After</code> header (in seconds).'
+    },
+    {
+        code: 500,
+        label: 'Server Error',
+        when: 'Something on our side broke. Safe to retry after a short backoff; persistent 500s should be reported.'
+    }
+]
+---
+
+<DocsLayout
+    title="Errors & rate limits"
+    section="resources"
+    page="errors"
+>
+    <h1>Errors &amp; rate limits</h1>
+    <p class="lede">
+        Every error response shares the same shape. Every rate limit advertises
+        itself in headers so your client can back off correctly.
+    </p>
+
+    <h2>Error envelope</h2>
+    <p>
+        Failures use the same <code>{`{ data, error, message }`}</code> envelope as
+        successes — with <code>error: true</code> and a human-readable
+        message:
+    </p>
+
+    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>{`{
+  "data": null,
+  "error": true,
+  "message": "Invalid API token"
+}`}</code></pre>
+
+    <p>
+        Some errors carry extra fields. Quota errors (402), for instance,
+        include the user's current <code>usage</code> and the
+        <code>product</code> that owns the limit:
+    </p>
+
+    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>{`{
+  "data": null,
+  "error": true,
+  "message": "Extraction credit limit reached (10 per 30 days on the Free plan).",
+  "usage": {
+    "creditsUsed": 10,
+    "creditsLimit": 10,
+    "periodStart": "2025-04-01T00:00:00.000Z",
+    "periodEnd": "2025-05-01T00:00:00.000Z",
+    "percentUsed": 100,
+    "remaining": 0
+  },
+  "product": { "slug": "free", "name": "Free" }
+}`}</code></pre>
+
+    <h2>Status codes</h2>
+    <div class="not-prose my-4 overflow-hidden rounded-lg border border-gray-200">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
+                <tr>
+                    <th class="px-4 py-2 font-medium">Code</th>
+                    <th class="px-4 py-2 font-medium">Name</th>
+                    <th class="px-4 py-2 font-medium">When you'll see it</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-[13px] text-gray-700">
+                {
+                    codes.map((c) => (
+                        <tr class="align-top">
+                            <td class="px-4 py-3 font-mono text-gray-900">{c.code}</td>
+                            <td class="px-4 py-3 whitespace-nowrap">{c.label}</td>
+                            <td class="px-4 py-3">
+                                <Fragment set:html={c.when} />
+                            </td>
+                        </tr>
+                    ))
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Rate limits</h2>
+    <p>
+        Limits are enforced per user (every API token belongs to a user, so
+        all your tokens share the same buckets). When you exceed a limit the
+        request returns <code>429</code> with a <code>Retry-After</code>
+        header (seconds).
+    </p>
+    <div class="not-prose my-4 overflow-hidden rounded-lg border border-gray-200">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
+                <tr>
+                    <th class="px-4 py-2 font-medium">Endpoint</th>
+                    <th class="px-4 py-2 font-medium">Window</th>
+                    <th class="px-4 py-2 font-medium">Cap</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-[13px] text-gray-700">
+                <tr>
+                    <td class="px-4 py-3 font-mono text-gray-900">POST /v1/extract</td>
+                    <td class="px-4 py-3">60 seconds</td>
+                    <td class="px-4 py-3">20 requests</td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-3 font-mono text-gray-900">Auth (login flows)</td>
+                    <td class="px-4 py-3">60 seconds</td>
+                    <td class="px-4 py-3">10 requests / IP</td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-3 font-mono text-gray-900">All other endpoints</td>
+                    <td class="px-4 py-3">—</td>
+                    <td class="px-4 py-3">no per-endpoint cap (yet)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Plan quotas (402)</h2>
+    <p>
+        Plan quotas are enforced separately from rate limits. A
+        <code>POST /v1/extract</code> that passes the rate limiter still
+        returns <code>402</code> if you've consumed your monthly extraction
+        credits. The window is rolling 30 days — older runs age out and your
+        balance recovers automatically. Upgrade plans at
+        <a href="https://app.doc-extraction.com/billing">/billing</a>.
+    </p>
+
+    <h2>Recommended client behavior</h2>
+    <ul>
+        <li>
+            Treat <code>5xx</code> and network errors as retryable; back off
+            exponentially (e.g. 1s, 2s, 4s up to 30s) and give up after a few
+            attempts.
+        </li>
+        <li>
+            On <code>429</code>, honor <code>Retry-After</code>. Do not retry
+            faster than the header says.
+        </li>
+        <li>
+            On <code>401</code> with <code>"API token expired"</code> or
+            <code>"API token revoked"</code>, do not retry — surface the
+            error to the operator.
+        </li>
+        <li>
+            On <code>402</code>, do not retry. The next call will fail too
+            until usage drops below the limit or the user upgrades.
+        </li>
+    </ul>
+</DocsLayout>
