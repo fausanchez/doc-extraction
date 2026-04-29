@@ -1,0 +1,109 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro'
+import HttpMethod from '../../components/docs/HttpMethod.astro'
+---
+
+<DocsLayout title="Introduction" section="getting-started" page="index">
+    <h1>DocExtract API</h1>
+    <p class="lede">
+        Turn PDFs and images into structured JSON with a single HTTP call.
+    </p>
+
+    <p>
+        The DocExtract API is a small REST surface for running document
+        extraction jobs. Send a file plus the id of an extraction template,
+        get a JSON object that matches your schema. Authentication uses an
+        API token issued from your dashboard.
+    </p>
+
+    <h2>Base URL</h2>
+    <p>All requests target a single base URL, scoped per environment:</p>
+    <ul>
+        <li>Production: <code>https://api.doc-extraction.com</code></li>
+        <li>Development: <code>https://api-develop.doc-extraction.com</code></li>
+    </ul>
+
+    <h2>Endpoints at a glance</h2>
+    <div class="not-prose my-4 overflow-hidden rounded-lg border border-gray-200">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
+                <tr>
+                    <th class="px-4 py-2 font-medium">Method</th>
+                    <th class="px-4 py-2 font-medium">Path</th>
+                    <th class="px-4 py-2 font-medium">Auth</th>
+                    <th class="px-4 py-2 font-medium">Purpose</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-[13px]">
+                <tr>
+                    <td class="px-4 py-2.5"><HttpMethod method="POST" /></td>
+                    <td class="px-4 py-2.5 font-mono text-gray-900">
+                        <a href="/docs/endpoints/extract" class="text-blue-600 hover:underline">
+                            /v1/extract
+                        </a>
+                    </td>
+                    <td class="px-4 py-2.5 text-gray-600">Token</td>
+                    <td class="px-4 py-2.5 text-gray-700">
+                        Upload a file and start an extraction.
+                    </td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-2.5"><HttpMethod method="GET" /></td>
+                    <td class="px-4 py-2.5 font-mono text-gray-900">
+                        <a href="/docs/endpoints/get-extraction" class="text-blue-600 hover:underline">
+                            /v1/extractions/:id
+                        </a>
+                    </td>
+                    <td class="px-4 py-2.5 text-gray-600">Token</td>
+                    <td class="px-4 py-2.5 text-gray-700">
+                        Poll an extraction's status and parsed result.
+                    </td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-2.5"><HttpMethod method="GET" /></td>
+                    <td class="px-4 py-2.5 font-mono text-gray-900">
+                        <a href="/docs/endpoints/list-products" class="text-blue-600 hover:underline">
+                            /products
+                        </a>
+                    </td>
+                    <td class="px-4 py-2.5 text-gray-600">Public</td>
+                    <td class="px-4 py-2.5 text-gray-700">List the catalogue with prices.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Conventions</h2>
+    <p>
+        Every JSON response shares the same envelope, whether the call succeeds
+        or fails:
+    </p>
+
+    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>{`// Success
+{ "data": <T>, "error": false }
+
+// Failure
+{ "data": null, "error": true, "message": "Human-readable explanation" }`}</code></pre>
+
+    <p>
+        HTTP status codes carry the same semantics as the REST world expects:
+        2xx for success, 4xx for caller mistakes, 5xx for ours. Quota issues
+        come back as <strong>402</strong>, not 429 — see <a href="/docs/errors">Errors &amp; rate limits</a>.
+    </p>
+
+    <h2>Next steps</h2>
+    <ul>
+        <li>
+            <a href="/docs/quickstart">Quickstart</a> — make your first
+            extraction in under a minute.
+        </li>
+        <li>
+            <a href="/docs/authentication">Authentication</a> — how API tokens
+            work and how to keep them safe.
+        </li>
+        <li>
+            <a href="/docs/endpoints/extract">POST /v1/extract</a> — the
+            endpoint you'll use most often.
+        </li>
+    </ul>
+</DocsLayout>

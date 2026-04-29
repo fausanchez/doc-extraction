@@ -1,0 +1,147 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro'
+import Endpoint from '../../../components/docs/Endpoint.astro'
+import ParamTable from '../../../components/docs/ParamTable.astro'
+import CodeTabs from '../../../components/docs/CodeTabs.astro'
+
+const responseParams = [
+    {
+        name: 'id',
+        type: 'integer',
+        description: 'Internal product id (stable per environment).'
+    },
+    {
+        name: 'slug',
+        type: 'string',
+        description:
+            'Stable, human-friendly identifier (e.g. <code>"free"</code>, <code>"pro"</code>). Prefer this over <code>id</code> for code that needs to reference a specific tier.'
+    },
+    {
+        name: 'name',
+        type: 'string',
+        description: 'Display name of the plan.'
+    },
+    {
+        name: 'description',
+        type: 'string',
+        description: 'Marketing copy describing the plan.'
+    },
+    {
+        name: 'monthlyExtractionCredits',
+        type: 'integer | null',
+        description:
+            'Credits per rolling 30-day window. <code>null</code> means unlimited.'
+    },
+    {
+        name: 'prices',
+        type: 'array',
+        description:
+            'Active price points for the product. Each price has <code>amount</code> (minor units, e.g. cents), <code>currency</code> (ISO 4217), <code>interval</code> (<code>month</code> | <code>year</code> | <code>one_time</code> | <code>free</code>) and <code>intervalCount</code>.'
+    }
+]
+
+const sCurl = `curl https://api.doc-extraction.com/products`
+
+const sJs = `const res = await fetch('https://api.doc-extraction.com/products')
+const { data: products } = await res.json()
+products.forEach((p) => console.log(p.slug, p.monthlyExtractionCredits))`
+
+const sPython = `import requests
+
+products = requests.get('https://api.doc-extraction.com/products').json()['data']
+for p in products:
+    print(p['slug'], p['monthlyExtractionCredits'])`
+
+const sGo = `res, _ := http.Get("https://api.doc-extraction.com/products")
+defer res.Body.Close()
+
+var out struct {
+    Data []struct {
+        Slug                     string \`json:"slug"\`
+        MonthlyExtractionCredits *int   \`json:"monthlyExtractionCredits"\`
+    } \`json:"data"\`
+}
+json.NewDecoder(res.Body).Decode(&out)`
+
+const sRuby = `require 'net/http'
+require 'json'
+
+uri = URI('https://api.doc-extraction.com/products')
+res = Net::HTTP.get(uri)
+JSON.parse(res)['data'].each { |p| puts "#{p['slug']}: #{p['monthlyExtractionCredits']}" }`
+---
+
+<DocsLayout
+    title="GET /products"
+    description="List the public catalogue with prices."
+    section="reference"
+    page="list-products"
+>
+    <h1>List products</h1>
+    <p class="lede">
+        Returns the active plans and their prices. No authentication required —
+        useful for rendering a pricing page or surfacing upgrade options
+        in-app.
+    </p>
+
+    <Endpoint method="GET" path="/products" auth="public" />
+
+    <h2>Response — 200 OK</h2>
+    <p>
+        An array of products, each with a nested <code>prices</code> array.
+        Products are sorted by <code>sortOrder</code> ascending.
+    </p>
+
+    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>{`{
+  "data": [
+    {
+      "id": 1,
+      "slug": "free",
+      "name": "Free",
+      "description": "Try DocExtract — perfect for kicking the tires.",
+      "monthlyExtractionCredits": 10,
+      "sortOrder": 0,
+      "isDefault": true,
+      "status": "active",
+      "createdAt": 1737830520000,
+      "prices": [
+        {
+          "id": 1,
+          "amount": 0,
+          "currency": "USD",
+          "interval": "free",
+          "intervalCount": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "slug": "pro",
+      "name": "Pro",
+      "monthlyExtractionCredits": 500,
+      "prices": [
+        { "amount": 1900,  "currency": "USD", "interval": "month", "intervalCount": 1 },
+        { "amount": 19000, "currency": "USD", "interval": "year",  "intervalCount": 1 }
+      ]
+    }
+  ],
+  "error": false
+}`}</code></pre>
+
+    <ParamTable params={responseParams} />
+
+    <CodeTabs
+        title="Example request"
+        samples={{ curl: sCurl, javascript: sJs, python: sPython, go: sGo, ruby: sRuby }}
+    />
+
+    <h2>Get a single product</h2>
+    <p>
+        For one product by slug, use
+        <code>GET /products/:slug</code>:
+    </p>
+
+    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>curl https://api.doc-extraction.com/products/pro</code></pre>
+
+    <p>The response shape is the same single-product object as above.</p>
+</DocsLayout>
