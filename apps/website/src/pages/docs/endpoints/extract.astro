@@ -1,0 +1,219 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro'
+import Endpoint from '../../../components/docs/Endpoint.astro'
+import ParamTable from '../../../components/docs/ParamTable.astro'
+import CodeTabs from '../../../components/docs/CodeTabs.astro'
+
+const requestParams = [
+    {
+        name: 'file',
+        type: 'multipart file',
+        required: true,
+        description:
+            'The document to extract from. Must be PDF, JPEG, PNG, or WebP. Maximum 10 MB. The server inspects the file bytes — a misleading <code>Content-Type</code> is rejected.'
+    },
+    {
+        name: 'template_id',
+        type: 'integer',
+        required: true,
+        description:
+            'Id of the template that defines the JSON shape. Templates are managed in the dashboard. The id must belong to the same account as the API token.'
+    }
+]
+
+const responseParams = [
+    {
+        name: 'extractionId',
+        type: 'integer',
+        description: 'The id used by <code>GET /v1/extractions/:id</code> to poll the result.'
+    },
+    {
+        name: 'documentId',
+        type: 'integer',
+        description: 'Id of the persisted document row created from the upload.'
+    },
+    {
+        name: 'templateId',
+        type: 'integer',
+        description: 'Echo of the template id the extraction is bound to.'
+    },
+    {
+        name: 'status',
+        type: 'string',
+        description: 'Initial status. Always <code>"pending"</code> on the response from this endpoint.'
+    },
+    {
+        name: 'createdAt',
+        type: 'integer (ms)',
+        description: 'Server timestamp at insertion, in milliseconds since the Unix epoch.'
+    }
+]
+
+const sCurl = `curl -X POST https://api.doc-extraction.com/v1/extract \\
+  -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE" \\
+  -F "file=@invoice.pdf" \\
+  -F "template_id=42"`
+
+const sJs = `const form = new FormData()
+form.append('file', file) // a File or Blob
+form.append('template_id', '42')
+
+const res = await fetch('https://api.doc-extraction.com/v1/extract', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' },
+    body: form
+})
+
+if (!res.ok) {
+    throw new Error(\`extract failed: \${res.status}\`)
+}
+const { data } = await res.json()
+console.log('queued', data.extractionId)`
+
+const sPython = `import requests
+
+with open('invoice.pdf', 'rb') as f:
+    res = requests.post(
+        'https://api.doc-extraction.com/v1/extract',
+        headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
+        files={'file': ('invoice.pdf', f, 'application/pdf')},
+        data={'template_id': 42},
+        timeout=30,
+    )
+
+res.raise_for_status()
+print('queued', res.json()['data']['extractionId'])`
+
+const sGo = `package main
+
+import (
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "io"
+    "mime/multipart"
+    "net/http"
+    "os"
+)
+
+func main() {
+    f, _ := os.Open("invoice.pdf")
+    defer f.Close()
+
+    var body bytes.Buffer
+    w := multipart.NewWriter(&body)
+    fw, _ := w.CreateFormFile("file", "invoice.pdf")
+    io.Copy(fw, f)
+    w.WriteField("template_id", "42")
+    w.Close()
+
+    req, _ := http.NewRequest("POST",
+        "https://api.doc-extraction.com/v1/extract", &body)
+    req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
+    req.Header.Set("Content-Type", w.FormDataContentType())
+
+    res, _ := http.DefaultClient.Do(req)
+    defer res.Body.Close()
+
+    var out struct {
+        Data struct {
+            ExtractionID int \`json:"extractionId"\`
+        } \`json:"data"\`
+    }
+    json.NewDecoder(res.Body).Decode(&out)
+    fmt.Println("queued", out.Data.ExtractionID)
+}`
+
+const sRuby = `require 'net/http'
+require 'json'
+
+uri = URI('https://api.doc-extraction.com/v1/extract')
+req = Net::HTTP::Post.new(uri)
+req['Authorization'] = 'Bearer dx_live_YOUR_TOKEN_HERE'
+
+req.set_form(
+  [['file', File.open('invoice.pdf')], ['template_id', '42']],
+  'multipart/form-data'
+)
+
+res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |h| h.request(req) }
+puts JSON.parse(res.body)['data']['extractionId']`
+---
+
+<DocsLayout
+    title="POST /v1/extract"
+    description="Upload a document and start an extraction against one of your templates."
+    section="reference"
+    page="extract"
+>
+    <h1>Extract document</h1>
+    <p class="lede">
+        Upload a file, point at a template, and queue an extraction. Returns
+        immediately with an extraction id you poll for the result.
+    </p>
+
+    <Endpoint method="POST" path="/v1/extract" auth="token" />
+
+    <h2>Request</h2>
+    <p>
+        Send a <code>multipart/form-data</code> body with the file and the
+        template id. <code>Content-Type</code> on the request itself is set
+        automatically by your HTTP client when you provide a multipart form;
+        do not set it manually.
+    </p>
+
+    <ParamTable params={requestParams} />
+
+    <CodeTabs
+        title="Example request"
+        samples={{ curl: sCurl, javascript: sJs, python: sPython, go: sGo, ruby: sRuby }}
+    />
+
+    <h2>Response — 202 Accepted</h2>
+    <p>
+        The response carries the queued extraction id. The job runs
+        asynchronously; poll <a href="/docs/endpoints/get-extraction"><code>GET /v1/extractions/:id</code></a>
+        every second or two until <code>status</code> is <code>done</code>.
+    </p>
+
+    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>{`{
+  "data": {
+    "extractionId": 7821,
+    "documentId": 4128,
+    "templateId": 42,
+    "status": "pending",
+    "createdAt": 1737830520000
+  },
+  "error": false
+}`}</code></pre>
+
+    <ParamTable params={responseParams} />
+
+    <h2>Errors</h2>
+    <ul>
+        <li>
+            <strong>400</strong> — <code>file</code> missing,
+            <code>template_id</code> missing or non-numeric, file exceeds
+            10 MB, file type not supported, or file bytes don't match the
+            declared <code>Content-Type</code>.
+        </li>
+        <li>
+            <strong>401</strong> — token missing, malformed, unknown,
+            revoked or expired. See
+            <a href="/docs/authentication">Authentication</a>.
+        </li>
+        <li>
+            <strong>402</strong> — your plan's extraction quota is exhausted
+            for the rolling 30-day window. Body includes <code>usage</code>
+            and <code>product</code>.
+        </li>
+        <li>
+            <strong>404</strong> — <code>template_id</code> doesn't exist,
+            or it belongs to a different account.
+        </li>
+        <li>
+            <strong>429</strong> — rate limit (20 calls / 60 s per user).
+            Honor <code>Retry-After</code>.
+        </li>
+    </ul>
+</DocsLayout>

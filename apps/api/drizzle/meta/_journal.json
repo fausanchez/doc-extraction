@@ -8,6 +8,27 @@
       "when": 1777383225073,
       "tag": "0000_greedy_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1777383225074,
+      "tag": "0001_session_token_hash",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777383225075,
+      "tag": "0002_products_prices",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1777383225076,
+      "tag": "0003_api_tokens",
+      "breakpoints": true
     }
   ]
 }

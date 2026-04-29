@@ -65,7 +65,7 @@ export function Login() {
                 toast.error(res.message)
                 return
             }
-            setToken(res.data.token)
+            setToken(res.data.accessToken)
             setUser(res.data.user)
             navigate(urlDashboard(), { viewTransition: true })
         } catch {
@@ -92,7 +92,7 @@ export function Login() {
                         toast.error(res.message)
                         return
                     }
-                    setToken(res.data.token)
+                    setToken(res.data.accessToken)
                     setUser(res.data.user)
                     navigate(urlDashboard(), { viewTransition: true })
                 } catch {

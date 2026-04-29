@@ -6,8 +6,13 @@ import { authMiddleware } from '@/middleware/auth'
 import { zValidator } from '@/lib/utils'
 import { idParamSchema } from '@/lib/validators'
 import { rateLimit, keyByUser } from '@/middleware/rate-limit'
+import { buildObjectKey, sanitizeFilename } from '@/lib/filenames'
+import { sniffFile } from '@/lib/mime-sniff'
 
-const router = new Hono<{ Bindings: CloudflareBindings; Variables: { userId: number; role: string } }>()
+const router = new Hono<{
+    Bindings: CloudflareBindings
+    Variables: { userId: number; sessionId: string; role: string }
+}>()
 
 router.use('*', authMiddleware)
 
@@ -49,6 +54,41 @@ router.get('/:id', zValidator('param', idParamSchema), async (c) => {
     return c.json({ data: { ...doc[0], extractions: docExtractions }, error: false })
 })
 
+// Download single document — proxied through the Worker so the R2 bucket can
+// stay private (no presigned URL leaks) and ownership is checked on every
+// fetch.
+router.get('/:id/download', zValidator('param', idParamSchema), async (c) => {
+    const userId = c.get('userId')
+    const { id } = c.req.valid('param')
+    const db = drizzle(c.env.DB)
+
+    const [doc] = await db
+        .select()
+        .from(documents)
+        .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+        .limit(1)
+
+    if (!doc) {
+        return c.json({ data: null, error: true, message: 'Document not found' }, 404)
+    }
+
+    const obj = await c.env.BUCKET.get(doc.filePath)
+    if (!obj) {
+        return c.json({ data: null, error: true, message: 'File not found in storage' }, 404)
+    }
+
+    return new Response(obj.body, {
+        headers: {
+            'Content-Type': doc.mimeType,
+            'Content-Length': String(doc.size),
+            // `inline` keeps PDFs and images viewable in-browser; the filename
+            // travels through `sanitizeFilename` already so it's safe here.
+            'Content-Disposition': `inline; filename="${doc.name}"`,
+            'Cache-Control': 'private, max-age=300, must-revalidate'
+        }
+    })
+})
+
 // Upload document — per-user rate limit prevents storage flooding.
 router.post(
     '/upload',
@@ -75,9 +115,24 @@ router.post(
             )
         }
 
-        const key = `${userId}/${Date.now()}-${file.name}`
+        // Magic-byte check — a malicious client can claim any Content-Type, so
+        // verify the actual file bytes before accepting the upload.
+        const sniffed = await sniffFile(file)
+        if (!sniffed || sniffed !== file.type) {
+            return c.json(
+                {
+                    data: null,
+                    error: true,
+                    message: 'File contents do not match the declared type'
+                },
+                400
+            )
+        }
+
+        const safeName = sanitizeFilename(file.name)
+        const key = buildObjectKey(userId, file.name)
         await c.env.BUCKET.put(key, file.stream(), {
-            httpMetadata: { contentType: file.type }
+            httpMetadata: { contentType: sniffed }
         })
 
         const db = drizzle(c.env.DB)
@@ -85,9 +140,9 @@ router.post(
             .insert(documents)
             .values({
                 userId,
-                name: file.name,
+                name: safeName,
                 filePath: key,
-                mimeType: file.type,
+                mimeType: sniffed,
                 size: file.size
             })
             .returning()

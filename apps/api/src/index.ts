@@ -3,21 +3,48 @@ import { cors } from 'hono/cors'
 import { securityHeaders } from './middleware/security-headers'
 import router from './router'
 
-const app = new Hono()
+const app = new Hono<{ Bindings: CloudflareBindings }>()
+
+// Fail fast on missing/weak secrets at the request boundary so a misconfigured
+// deploy is loud rather than silently issuing unsigned tokens. We don't crash
+// at module-eval time because Cloudflare instantiates Workers lazily and the
+// bindings aren't visible there.
+app.use('*', async (c, next) => {
+    if (!c.env.JWT_SECRET || c.env.JWT_SECRET.length < 32) {
+        return c.json(
+            { data: null, error: true, message: 'Server misconfigured: JWT_SECRET' },
+            500
+        )
+    }
+    await next()
+})
 
 app.use('*', securityHeaders)
 
-app.use(
-    '*',
+// Build the allowlist of origins from the configured APP_URL plus, in dev, a
+// localhost fallback. Explicit allowlist replaces the previous "any subdomain
+// of doc-extraction.com" check, which would have accepted requests from any
+// hypothetical sibling subdomain (attacker.doc-extraction.com).
+function isAllowedOrigin(origin: string, env: CloudflareBindings): boolean {
+    if (!origin) return false
+    if (origin === env.APP_URL) return true
+    // Local dev: APP_URL is configured per-env (localhost / develop / prod),
+    // so allow common dev origins only when the configured APP_URL itself
+    // looks like a local URL.
+    if (env.APP_URL.startsWith('http://localhost')) {
+        return /^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)
+    }
+    return false
+}
+
+app.use('*', (c, next) =>
     cors({
-        origin: (origin) => {
-            return origin.includes('localhost') || origin.endsWith('.doc-extraction.com')
-                ? origin
-                : 'https://app.doc-extraction.com'
-        },
+        origin: (origin) => (isAllowedOrigin(origin, c.env) ? origin : ''),
+        credentials: true,
         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowHeaders: ['Content-Type', 'Authorization']
-    })
+        allowHeaders: ['Content-Type', 'Authorization'],
+        maxAge: 600
+    })(c, next)
 )
 
 app.route('/', router)

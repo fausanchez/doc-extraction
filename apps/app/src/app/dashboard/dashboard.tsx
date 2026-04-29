@@ -13,11 +13,8 @@ import {
     Sparkles,
     Plus
 } from 'lucide-react'
-import {
-    urlDocuments,
-    urlExtractions,
-    urlTemplates
-} from '@/urls'
+import { UsageCard } from '@/components/usage/usage-card'
+import { urlDocuments, urlExtractions, urlTemplates } from '@/urls'
 import type { route } from './route'
 
 function StatusIcon({ status }: { status: string }) {
@@ -61,7 +58,7 @@ const stats = [
 ]
 
 export function Dashboard() {
-    const { stats: data } = useLoaderData<typeof route.loader>()
+    const { stats: data, usage } = useLoaderData<typeof route.loader>()
 
     return (
         <div className="flex flex-col gap-6">
@@ -105,7 +102,7 @@ export function Dashboard() {
                 ))}
             </div>
 
-            {/* Two-col: recent activity + quick actions */}
+            {/* Two-col: recent activity + usage / quick actions */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <section>
                     <div className="mb-2 flex items-center justify-between">
@@ -174,7 +171,10 @@ export function Dashboard() {
                 </section>
 
                 <aside className="flex flex-col gap-2">
-                    <h2 className="text-[13px] font-medium uppercase tracking-wider text-muted-foreground">
+                    {/* Plan + rolling-30d credits — refreshes when extractions land. */}
+                    <UsageCard data={usage} />
+
+                    <h2 className="mt-2 text-[13px] font-medium uppercase tracking-wider text-muted-foreground">
                         Quick actions
                     </h2>
                     <Link

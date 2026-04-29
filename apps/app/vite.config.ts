@@ -12,5 +12,11 @@ export default defineConfig({
         alias: {
             '@': path.resolve(__dirname, './src')
         }
+    },
+    build: {
+        // Never ship sourcemaps to production — they leak the original source
+        // including JSDoc, comments and unstripped logic to anyone with the
+        // browser dev tools open.
+        sourcemap: false
     }
 })

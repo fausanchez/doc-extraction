@@ -1,0 +1,226 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro'
+import Endpoint from '../../../components/docs/Endpoint.astro'
+import ParamTable from '../../../components/docs/ParamTable.astro'
+import CodeTabs from '../../../components/docs/CodeTabs.astro'
+
+const pathParams = [
+    {
+        name: 'id',
+        type: 'integer',
+        required: true,
+        description:
+            'The <code>extractionId</code> returned by <code>POST /v1/extract</code>.'
+    }
+]
+
+const responseParams = [
+    {
+        name: 'id',
+        type: 'integer',
+        description: 'Extraction id (mirrors the URL).'
+    },
+    {
+        name: 'documentId',
+        type: 'integer',
+        description: 'Source document id.'
+    },
+    {
+        name: 'templateId',
+        type: 'integer',
+        description: 'Template id used to shape the result.'
+    },
+    {
+        name: 'status',
+        type: 'enum',
+        description:
+            "One of <code>pending</code>, <code>processing</code>, <code>done</code>, <code>error</code>."
+    },
+    {
+        name: 'errorMessage',
+        type: 'string | null',
+        description:
+            "Human-readable error reason when <code>status === \"error\"</code>; <code>null</code> otherwise."
+    },
+    {
+        name: 'result',
+        type: 'object | null',
+        description:
+            "Parsed JSON object matching your template, populated only when <code>status === \"done\"</code>. The server already JSON-decoded this for you — do not parse it again."
+    },
+    {
+        name: 'createdAt',
+        type: 'integer (ms)',
+        description: 'Server timestamp at extraction creation.'
+    }
+]
+
+const sCurl = `curl https://api.doc-extraction.com/v1/extractions/7821 \\
+  -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE"`
+
+const sJs = `async function waitForExtraction(id, { tries = 30, intervalMs = 1500 } = {}) {
+    for (let i = 0; i < tries; i++) {
+        const res = await fetch(
+            \`https://api.doc-extraction.com/v1/extractions/\${id}\`,
+            { headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' } }
+        )
+        const { data } = await res.json()
+        if (data.status === 'done') return data.result
+        if (data.status === 'error') throw new Error(data.errorMessage)
+        await new Promise((r) => setTimeout(r, intervalMs))
+    }
+    throw new Error('extraction did not finish in time')
+}
+
+const result = await waitForExtraction(7821)
+console.log(result)`
+
+const sPython = `import time, requests
+
+def wait_for_extraction(eid, tries=30, interval=1.5):
+    for _ in range(tries):
+        res = requests.get(
+            f'https://api.doc-extraction.com/v1/extractions/{eid}',
+            headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
+            timeout=30,
+        )
+        res.raise_for_status()
+        data = res.json()['data']
+        if data['status'] == 'done':
+            return data['result']
+        if data['status'] == 'error':
+            raise RuntimeError(data['errorMessage'])
+        time.sleep(interval)
+    raise TimeoutError('extraction did not finish in time')
+
+result = wait_for_extraction(7821)
+print(result)`
+
+const sGo = `package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+    "time"
+)
+
+type extractionEnvelope struct {
+    Data struct {
+        Status       string                 \`json:"status"\`
+        Result       map[string]interface{} \`json:"result"\`
+        ErrorMessage string                 \`json:"errorMessage"\`
+    } \`json:"data"\`
+}
+
+func waitFor(id int) (map[string]interface{}, error) {
+    url := fmt.Sprintf("https://api.doc-extraction.com/v1/extractions/%d", id)
+    for i := 0; i < 30; i++ {
+        req, _ := http.NewRequest("GET", url, nil)
+        req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
+        res, err := http.DefaultClient.Do(req)
+        if err != nil { return nil, err }
+        var env extractionEnvelope
+        json.NewDecoder(res.Body).Decode(&env)
+        res.Body.Close()
+        switch env.Data.Status {
+        case "done":
+            return env.Data.Result, nil
+        case "error":
+            return nil, fmt.Errorf("extraction failed: %s", env.Data.ErrorMessage)
+        }
+        time.Sleep(1500 * time.Millisecond)
+    }
+    return nil, fmt.Errorf("timed out")
+}`
+
+const sRuby = `require 'net/http'
+require 'json'
+
+def wait_for(id, tries: 30, interval: 1.5)
+  uri = URI("https://api.doc-extraction.com/v1/extractions/#{id}")
+  tries.times do
+    res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+      http.get(uri.path, 'Authorization' => 'Bearer dx_live_YOUR_TOKEN_HERE')
+    end
+    data = JSON.parse(res.body)['data']
+    return data['result'] if data['status'] == 'done'
+    raise data['errorMessage'] if data['status'] == 'error'
+    sleep(interval)
+  end
+  raise 'extraction did not finish in time'
+end`
+---
+
+<DocsLayout
+    title="GET /v1/extractions/:id"
+    description="Retrieve an extraction's status and parsed result by id."
+    section="reference"
+    page="get-extraction"
+>
+    <h1>Get extraction</h1>
+    <p class="lede">
+        Read the current status of an extraction. When it's <code>done</code>,
+        the response includes the parsed JSON result.
+    </p>
+
+    <Endpoint method="GET" path="/v1/extractions/:id" auth="token" />
+
+    <h2>Path parameters</h2>
+    <ParamTable params={pathParams} />
+
+    <h2>Polling pattern</h2>
+    <p>
+        Extractions typically complete in 1–3 seconds for small documents and
+        up to 10 seconds for multi-page PDFs. A simple "poll until done"
+        loop with a 1.5–2 s interval covers the common case; cap the loop at
+        ~30 attempts so you don't hang on a stuck job.
+    </p>
+
+    <CodeTabs
+        title="Poll until done"
+        samples={{ curl: sCurl, javascript: sJs, python: sPython, go: sGo, ruby: sRuby }}
+    />
+
+    <h2>Response — 200 OK</h2>
+    <p>
+        While the job is running, <code>result</code> is <code>null</code>.
+        Once <code>status</code> is <code>done</code>, <code>result</code> is
+        the JSON object your template defined — already decoded.
+    </p>
+
+    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>{`{
+  "data": {
+    "id": 7821,
+    "documentId": 4128,
+    "templateId": 42,
+    "status": "done",
+    "errorMessage": null,
+    "result": {
+      "invoice_number": "INV-2024-0042",
+      "issue_date": "2024-01-15",
+      "total_amount": 1250.00,
+      "currency": "USD",
+      "vendor": { "name": "Acme Corp" }
+    },
+    "createdAt": 1737830520000
+  },
+  "error": false
+}`}</code></pre>
+
+    <ParamTable params={responseParams} />
+
+    <h2>Errors</h2>
+    <ul>
+        <li>
+            <strong>400</strong> — <code>id</code> not a positive integer.
+        </li>
+        <li>
+            <strong>401</strong> — token missing, invalid, revoked or expired.
+        </li>
+        <li>
+            <strong>404</strong> — extraction doesn't exist or belongs to a
+            different account.
+        </li>
+    </ul>
+</DocsLayout>

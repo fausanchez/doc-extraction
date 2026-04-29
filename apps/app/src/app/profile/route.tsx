@@ -1,6 +1,7 @@
 import { urlProfile } from '@/urls'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { tokenAtom, userAtom } from '@/stores/auth'
+import { authApi } from '@/api-client'
 import { Button } from '@repo/ui/components/ui/button.tsx'
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/ui/card.tsx'
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar.tsx'
@@ -14,7 +15,15 @@ function Profile() {
     const setUser = useSetAtom(userAtom)
     const navigate = useNavigate()
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        // Best-effort server-side revocation; ignore network errors so the
+        // user can always sign out client-side. The refresh cookie is
+        // attached automatically by the browser.
+        try {
+            await authApi.logout()
+        } catch {
+            // ignore
+        }
         setToken(null)
         setUser(null)
         navigate(urlLogin(), { viewTransition: true })

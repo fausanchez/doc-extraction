@@ -1,0 +1,136 @@
+---
+// Sticky banner at the top of every docs page. Lets developers paste their
+// API token once; the value is stored in localStorage and substituted into
+// every code snippet on the page (and across navigation) so curl/JS/Python
+// examples are immediately runnable.
+//
+// The token never leaves the browser — there is no network call here.
+---
+
+<div
+    class="not-prose mb-8 rounded-lg border border-gray-200 bg-white"
+    data-token-injector
+>
+    <div class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+        <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium text-gray-900">Your API token</p>
+            <p class="text-xs text-gray-500">
+                Paste once — examples below auto-fill. Stored locally in your browser only.
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <input
+                type="text"
+                placeholder="dx_live_..."
+                spellcheck="false"
+                autocomplete="off"
+                data-token-input
+                class="h-8 w-full rounded-md border border-gray-300 bg-gray-50 px-2 font-mono text-xs text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:outline-none sm:w-72"
+            />
+            <button
+                type="button"
+                data-token-clear
+                class="rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+            >
+                Clear
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'docs_api_token'
+    const PLACEHOLDER = 'dx_live_YOUR_TOKEN_HERE'
+    // Validate before persisting so a typo doesn't masquerade as a real token.
+    const TOKEN_RE = /^dx_live_[a-f0-9]{32}$/i
+
+    function read(): string | null {
+        try {
+            return localStorage.getItem(STORAGE_KEY)
+        } catch {
+            return null
+        }
+    }
+    function write(value: string | null) {
+        try {
+            if (value === null) localStorage.removeItem(STORAGE_KEY)
+            else localStorage.setItem(STORAGE_KEY, value)
+        } catch {
+            // ignore
+        }
+    }
+
+    // Walk every text node under `root` and replace `from` with `to` while
+    // preserving surrounding HTML / Shiki spans. We only target text nodes so
+    // syntax highlighting stays intact.
+    function replaceInText(root: ParentNode, from: string, to: string) {
+        if (!from || !root) return
+        const walker = document.createTreeWalker(root as Node, NodeFilter.SHOW_TEXT, null)
+        const targets: Text[] = []
+        let node: Node | null
+        while ((node = walker.nextNode())) {
+            const text = (node as Text).nodeValue
+            if (text && text.includes(from)) targets.push(node as Text)
+        }
+        for (const t of targets) {
+            t.nodeValue = (t.nodeValue ?? '').split(from).join(to)
+        }
+    }
+
+    function applyToken(value: string | null) {
+        const next = value && TOKEN_RE.test(value) ? value : PLACEHOLDER
+        // Find every code panel on the page and run the substitution. We keep
+        // a copy of the original placeholder text by re-replacing on each
+        // change — when the user clears the field, we put the placeholder back.
+        document.querySelectorAll('[data-panels]').forEach((panel) => {
+            // Two-pass: first reset by replacing any current real token with
+            // placeholder, then apply the new value.
+            const previous = (panel as HTMLElement).dataset.lastToken
+            if (previous && previous !== next) {
+                replaceInText(panel, previous, PLACEHOLDER)
+            }
+            if (next !== PLACEHOLDER) {
+                replaceInText(panel, PLACEHOLDER, next)
+            }
+            ;(panel as HTMLElement).dataset.lastToken = next
+        })
+    }
+
+    document.querySelectorAll<HTMLDivElement>('[data-token-injector]').forEach((root) => {
+        const input = root.querySelector<HTMLInputElement>('[data-token-input]')
+        const clear = root.querySelector<HTMLButtonElement>('[data-token-clear]')
+        if (!input) return
+
+        const stored = read()
+        if (stored) {
+            input.value = stored
+            applyToken(stored)
+        } else {
+            applyToken(null)
+        }
+
+        let timer: number | undefined
+        input.addEventListener('input', () => {
+            const v = input.value.trim()
+            if (timer) window.clearTimeout(timer)
+            // Debounce so we don't reflow the page on every keystroke.
+            timer = window.setTimeout(() => {
+                if (!v) {
+                    write(null)
+                    applyToken(null)
+                    return
+                }
+                if (TOKEN_RE.test(v)) {
+                    write(v)
+                    applyToken(v)
+                }
+            }, 150)
+        })
+
+        clear?.addEventListener('click', () => {
+            input.value = ''
+            write(null)
+            applyToken(null)
+        })
+    })
+</script>

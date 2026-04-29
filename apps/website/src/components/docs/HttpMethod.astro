@@ -1,0 +1,26 @@
+---
+interface Props {
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+    class?: string
+}
+
+const { method, class: className } = Astro.props
+
+const palette: Record<string, string> = {
+    GET: 'bg-blue-50 text-blue-700 ring-blue-200',
+    POST: 'bg-green-50 text-green-700 ring-green-200',
+    PUT: 'bg-amber-50 text-amber-700 ring-amber-200',
+    DELETE: 'bg-red-50 text-red-700 ring-red-200',
+    PATCH: 'bg-purple-50 text-purple-700 ring-purple-200'
+}
+---
+
+<span
+    class:list={[
+        'inline-flex items-center rounded-md px-2 py-0.5 font-mono text-[11px] font-bold ring-1 ring-inset',
+        palette[method] ?? 'bg-gray-50 text-gray-700 ring-gray-200',
+        className
+    ]}
+>
+    {method}
+</span>

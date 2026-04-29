@@ -40,7 +40,7 @@ import {
     type Extraction,
     type TemplateField
 } from '@/api-client'
-import { urlTemplates, urlExtractions } from '@/urls'
+import { urlBilling, urlTemplates, urlExtractions } from '@/urls'
 import { cn } from '@repo/ui/lib/utils.ts'
 import { toast } from 'sonner'
 import type { route } from './detail-route'
@@ -59,6 +59,24 @@ function StatusIcon({ status }: { status: string }) {
     if (status === 'error') return <AlertCircle className="size-3.5 text-destructive" />
     if (status === 'processing') return <Loader2 className="size-3.5 animate-spin text-violet-500" />
     return <Clock className="size-3.5 text-muted-foreground" />
+}
+
+// Shared error toast for extraction-start failures. Quota responses ship a
+// `usage` field (HTTP 402) — surface those with an upgrade affordance instead
+// of a generic error toast.
+function showExtractionError(res: { error: true; message: string } & { usage?: unknown }): void {
+    if ('usage' in res && res.usage) {
+        toast.error(res.message, {
+            action: {
+                label: 'See plans',
+                onClick: () => {
+                    window.location.href = urlBilling()
+                }
+            }
+        })
+        return
+    }
+    toast.error(res.message)
 }
 
 export function TemplateDetail() {
@@ -127,7 +145,7 @@ export function TemplateDetail() {
             setProgress(`Running extraction…`)
             const run = await extractionsApi.start(upload.data.id, template.id)
             if (run.error) {
-                toast.error(run.message)
+                showExtractionError(run)
                 return
             }
             toast.success('Extraction started')
@@ -147,7 +165,7 @@ export function TemplateDetail() {
         try {
             const res = await extractionsApi.start(doc.id, template.id)
             if (res.error) {
-                toast.error(res.message)
+                showExtractionError(res)
                 return
             }
             toast.success('Extraction started')

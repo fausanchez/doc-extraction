@@ -1,0 +1,44 @@
+---
+import HttpMethod from './HttpMethod.astro'
+
+interface Props {
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+    path: string
+    auth?: 'token' | 'public'
+}
+
+const { method, path, auth = 'token' } = Astro.props
+---
+
+<div
+    class="not-prose mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+>
+    <HttpMethod method={method} />
+    <code
+        class="flex-1 truncate font-mono text-sm text-gray-900"
+        style="background:transparent;border:none;padding:0"
+    >
+        {path}
+    </code>
+    {
+        auth === 'token' ? (
+            <span class="inline-flex items-center gap-1 rounded-md bg-white px-2 py-0.5 text-[11px] font-medium text-gray-700 ring-1 ring-gray-200">
+                <svg
+                    class="size-3 text-gray-500"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                >
+                    <rect x="3" y="7" width="10" height="6" rx="1" />
+                    <path d="M5 7V5a3 3 0 016 0v2" />
+                </svg>
+                API token
+            </span>
+        ) : (
+            <span class="inline-flex items-center rounded-md bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500 ring-1 ring-gray-200">
+                Public
+            </span>
+        )
+    }
+</div>
