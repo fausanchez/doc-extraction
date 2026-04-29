@@ -5,9 +5,9 @@ import { apiTokens, apiTokenUsageDaily } from '@/db/schema'
 type Db = ReturnType<typeof drizzle>
 
 // Identifies a token as one we issued. Stripe-style live/test split is left
-// for later (would be `dx_test_` for sandbox keys); for now everything is
+// for later (would be `dvop_test_` for sandbox keys); for now everything is
 // live.
-export const API_TOKEN_PREFIX = 'dx_live_'
+export const API_TOKEN_PREFIX = 'dvop_live_'
 
 // 16 bytes of entropy → 32 hex chars after the prefix. Matches the strength
 // of the refresh token (also 256-bit) without being unwieldy to copy.

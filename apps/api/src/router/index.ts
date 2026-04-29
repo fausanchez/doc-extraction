@@ -21,7 +21,7 @@ router.route('/extractions', extractionsRouter)
 router.route('/api-tokens', apiTokensRouter)
 
 // Public programmatic API. Authenticates with `Authorization: Bearer
-// dx_live_…` (an API token managed under /api-tokens). Versioned prefix
+// dvop_live_…` (an API token managed under /api-tokens). Versioned prefix
 // so future incompatible changes can co-exist.
 router.route('/v1', v1Router)
 

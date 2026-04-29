@@ -56,13 +56,13 @@ const responseParams = [
 ]
 
 const sCurl = `curl https://api.dvop.io/v1/extractions/7821 \\
-  -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE"`
+  -H "Authorization: Bearer dvop_live_YOUR_TOKEN_HERE"`
 
 const sJs = `async function waitForExtraction(id, { tries = 30, intervalMs = 1500 } = {}) {
     for (let i = 0; i < tries; i++) {
         const res = await fetch(
             \`https://api.dvop.io/v1/extractions/\${id}\`,
-            { headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' } }
+            { headers: { Authorization: 'Bearer dvop_live_YOUR_TOKEN_HERE' } }
         )
         const { data } = await res.json()
         if (data.status === 'done') return data.result
@@ -81,7 +81,7 @@ def wait_for_extraction(eid, tries=30, interval=1.5):
     for _ in range(tries):
         res = requests.get(
             f'https://api.dvop.io/v1/extractions/{eid}',
-            headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
+            headers={'Authorization': 'Bearer dvop_live_YOUR_TOKEN_HERE'},
             timeout=30,
         )
         res.raise_for_status()
@@ -117,7 +117,7 @@ func waitFor(id int) (map[string]interface{}, error) {
     url := fmt.Sprintf("https://api.dvop.io/v1/extractions/%d", id)
     for i := 0; i < 30; i++ {
         req, _ := http.NewRequest("GET", url, nil)
-        req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
+        req.Header.Set("Authorization", "Bearer dvop_live_YOUR_TOKEN_HERE")
         res, err := http.DefaultClient.Do(req)
         if err != nil { return nil, err }
         var env extractionEnvelope
@@ -141,7 +141,7 @@ def wait_for(id, tries: 30, interval: 1.5)
   uri = URI("https://api.dvop.io/v1/extractions/#{id}")
   tries.times do
     res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
-      http.get(uri.path, 'Authorization' => 'Bearer dx_live_YOUR_TOKEN_HERE')
+      http.get(uri.path, 'Authorization' => 'Bearer dvop_live_YOUR_TOKEN_HERE')
     end
     data = JSON.parse(res.body)['data']
     return data['result'] if data['status'] == 'done'
