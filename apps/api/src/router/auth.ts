@@ -26,7 +26,7 @@ const authRateLimit = rateLimit((env) => env.AUTH_RATE_LIMITER, keyByIp)
 // Refresh token now lives in an httpOnly cookie instead of localStorage. This
 // removes the XSS exfiltration path entirely (JS can't read it) while
 // SameSite=Lax + Path scoping defangs CSRF on the refresh endpoint.
-const REFRESH_COOKIE_NAME = 'dx_refresh'
+const REFRESH_COOKIE_NAME = 'dvop_refresh'
 
 type CookieEnv = { APP_URL: string }
 

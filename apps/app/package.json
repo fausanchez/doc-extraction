@@ -10,8 +10,8 @@
         "build:production": "tsc -b && vite build --mode production",
         "lint": "eslint .",
         "preview": "vite preview",
-        "deploy:develop": "pnpm build:develop && wrangler pages deploy dist --project-name doc-extraction-app --branch develop",
-        "deploy:production": "pnpm build:production && wrangler pages deploy dist --project-name doc-extraction-app"
+        "deploy:develop": "pnpm build:develop && wrangler pages deploy dist --project-name dvop-io-app --branch develop",
+        "deploy:production": "pnpm build:production && wrangler pages deploy dist --project-name dvop-io-app"
     },
     "dependencies": {
         "@repo/utils": "workspace:*",

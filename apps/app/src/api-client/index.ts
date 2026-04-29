@@ -72,7 +72,7 @@ const apiClient = ky.create({
     prefixUrl: API_URL,
     retry: { limit: 0 },
     // Always send cookies — needed for the refresh / logout endpoints which
-    // rely on the dx_refresh httpOnly cookie. Other endpoints don't read any
+    // rely on the dvop_refresh httpOnly cookie. Other endpoints don't read any
     // cookie, so this is a no-op for them.
     credentials: 'include',
     hooks: {

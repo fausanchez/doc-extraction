@@ -12,7 +12,7 @@ export const apiTokenAuthMiddleware: MiddlewareHandler<{
         return c.json(
             { data: null, error: true, message: 'Missing API token' },
             401,
-            { 'WWW-Authenticate': 'Bearer realm="DocExtract API"' }
+            { 'WWW-Authenticate': 'Bearer realm="dvop.io API"' }
         )
     }
 
@@ -27,7 +27,7 @@ export const apiTokenAuthMiddleware: MiddlewareHandler<{
                   ? 'API token revoked'
                   : 'Invalid API token'
         return c.json({ data: null, error: true, message }, 401, {
-            'WWW-Authenticate': 'Bearer realm="DocExtract API"'
+            'WWW-Authenticate': 'Bearer realm="dvop.io API"'
         })
     }
 

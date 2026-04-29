@@ -100,7 +100,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     </div>
                                     <div className="flex min-w-0 flex-col">
                                         <span className="truncate text-sm font-semibold leading-tight">
-                                            DocExtract
+                                            dvop.io
                                         </span>
                                         <span className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">
                                             Workspace

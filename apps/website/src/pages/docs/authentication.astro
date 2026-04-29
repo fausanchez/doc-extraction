@@ -2,10 +2,10 @@
 import DocsLayout from '../../layouts/DocsLayout.astro'
 import CodeTabs from '../../components/docs/CodeTabs.astro'
 
-const headerCurl = `curl https://api.doc-extraction.com/v1/extractions/123 \\
+const headerCurl = `curl https://api.dvop.io/v1/extractions/123 \\
   -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE"`
 
-const headerJs = `await fetch('https://api.doc-extraction.com/v1/extractions/123', {
+const headerJs = `await fetch('https://api.dvop.io/v1/extractions/123', {
     headers: {
         Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE'
     }
@@ -14,12 +14,12 @@ const headerJs = `await fetch('https://api.doc-extraction.com/v1/extractions/123
 const headerPython = `import requests
 
 requests.get(
-    'https://api.doc-extraction.com/v1/extractions/123',
+    'https://api.dvop.io/v1/extractions/123',
     headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
 )`
 
 const headerGo = `req, _ := http.NewRequest("GET",
-    "https://api.doc-extraction.com/v1/extractions/123", nil)
+    "https://api.dvop.io/v1/extractions/123", nil)
 req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")`
 
 const headerRuby = `req = Net::HTTP::Get.new(uri)
@@ -39,7 +39,7 @@ req['Authorization'] = 'Bearer dx_live_YOUR_TOKEN_HERE'`
 
     <h2>Token format</h2>
     <p>
-        DocExtract API tokens are random 256-bit secrets prefixed with
+        dvop.io API tokens are random 256-bit secrets prefixed with
         <code>dx_live_</code>. The full string looks like:
     </p>
     <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-[13px] text-gray-900"><code>dx_live_a3f9b2c1d8e74f60a3f9b2c1d8e74f60</code></pre>
@@ -65,7 +65,7 @@ req['Authorization'] = 'Bearer dx_live_YOUR_TOKEN_HERE'`
     <h2>Creating a token</h2>
     <p>
         Tokens are minted from the dashboard at
-        <a href="https://app.doc-extraction.com/api-tokens">/api-tokens</a>.
+        <a href="https://app.dvop.io/api-tokens">/api-tokens</a>.
         On creation you can label them (e.g. <em>Production</em>,
         <em>Staging</em>) and pick an optional expiration (30 days, 90 days,
         1 year, or never).
@@ -81,7 +81,7 @@ req['Authorization'] = 'Bearer dx_live_YOUR_TOKEN_HERE'`
     <ul>
         <li>Treat tokens like passwords — never commit one to a git repo.</li>
         <li>
-            Inject via environment variables (<code>DOCEXTRACT_API_TOKEN</code>
+            Inject via environment variables (<code>DVOP_API_TOKEN</code>
             is a fine convention) or a secret manager.
         </li>
         <li>

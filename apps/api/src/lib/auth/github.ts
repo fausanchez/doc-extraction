@@ -45,10 +45,10 @@ export async function exchangeGitHubCode(code: string, env: CloudflareBindings):
 export async function getGitHubUser(accessToken: string): Promise<{ user: GitHubUser; email: string }> {
     const [userRes, emailsRes] = await Promise.all([
         fetch('https://api.github.com/user', {
-            headers: { Authorization: `Bearer ${accessToken}`, 'User-Agent': 'doc-extraction' }
+            headers: { Authorization: `Bearer ${accessToken}`, 'User-Agent': 'dvop-io' }
         }),
         fetch('https://api.github.com/user/emails', {
-            headers: { Authorization: `Bearer ${accessToken}`, 'User-Agent': 'doc-extraction' }
+            headers: { Authorization: `Bearer ${accessToken}`, 'User-Agent': 'dvop-io' }
         })
     ])
 

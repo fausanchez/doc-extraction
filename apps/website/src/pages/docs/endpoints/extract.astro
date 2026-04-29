@@ -49,7 +49,7 @@ const responseParams = [
     }
 ]
 
-const sCurl = `curl -X POST https://api.doc-extraction.com/v1/extract \\
+const sCurl = `curl -X POST https://api.dvop.io/v1/extract \\
   -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE" \\
   -F "file=@invoice.pdf" \\
   -F "template_id=42"`
@@ -58,7 +58,7 @@ const sJs = `const form = new FormData()
 form.append('file', file) // a File or Blob
 form.append('template_id', '42')
 
-const res = await fetch('https://api.doc-extraction.com/v1/extract', {
+const res = await fetch('https://api.dvop.io/v1/extract', {
     method: 'POST',
     headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' },
     body: form
@@ -74,7 +74,7 @@ const sPython = `import requests
 
 with open('invoice.pdf', 'rb') as f:
     res = requests.post(
-        'https://api.doc-extraction.com/v1/extract',
+        'https://api.dvop.io/v1/extract',
         headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
         files={'file': ('invoice.pdf', f, 'application/pdf')},
         data={'template_id': 42},
@@ -108,7 +108,7 @@ func main() {
     w.Close()
 
     req, _ := http.NewRequest("POST",
-        "https://api.doc-extraction.com/v1/extract", &body)
+        "https://api.dvop.io/v1/extract", &body)
     req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
     req.Header.Set("Content-Type", w.FormDataContentType())
 
@@ -127,7 +127,7 @@ func main() {
 const sRuby = `require 'net/http'
 require 'json'
 
-uri = URI('https://api.doc-extraction.com/v1/extract')
+uri = URI('https://api.dvop.io/v1/extract')
 req = Net::HTTP::Post.new(uri)
 req['Authorization'] = 'Bearer dx_live_YOUR_TOKEN_HERE'
 

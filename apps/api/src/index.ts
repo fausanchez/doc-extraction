@@ -6,9 +6,9 @@ import router from './router'
 const app = new Hono<{ Bindings: CloudflareBindings }>()
 
 // Build the allowlist of origins from the configured APP_URL plus, in dev, a
-// localhost fallback. Explicit allowlist replaces the previous "any subdomain
-// of doc-extraction.com" check, which would have accepted requests from any
-// hypothetical sibling subdomain (attacker.doc-extraction.com).
+// localhost fallback. Explicit allowlist replaces the previous wildcard subdomain
+// check, which would have accepted requests from any hypothetical sibling
+// subdomain (e.g. attacker.dvop.io).
 function isAllowedOrigin(origin: string, env: CloudflareBindings): boolean {
     if (!origin) return false
     if (origin === env.APP_URL) return true

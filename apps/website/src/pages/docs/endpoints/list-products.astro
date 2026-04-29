@@ -40,19 +40,19 @@ const responseParams = [
     }
 ]
 
-const sCurl = `curl https://api.doc-extraction.com/products`
+const sCurl = `curl https://api.dvop.io/products`
 
-const sJs = `const res = await fetch('https://api.doc-extraction.com/products')
+const sJs = `const res = await fetch('https://api.dvop.io/products')
 const { data: products } = await res.json()
 products.forEach((p) => console.log(p.slug, p.monthlyExtractionCredits))`
 
 const sPython = `import requests
 
-products = requests.get('https://api.doc-extraction.com/products').json()['data']
+products = requests.get('https://api.dvop.io/products').json()['data']
 for p in products:
     print(p['slug'], p['monthlyExtractionCredits'])`
 
-const sGo = `res, _ := http.Get("https://api.doc-extraction.com/products")
+const sGo = `res, _ := http.Get("https://api.dvop.io/products")
 defer res.Body.Close()
 
 var out struct {
@@ -66,7 +66,7 @@ json.NewDecoder(res.Body).Decode(&out)`
 const sRuby = `require 'net/http'
 require 'json'
 
-uri = URI('https://api.doc-extraction.com/products')
+uri = URI('https://api.dvop.io/products')
 res = Net::HTTP.get(uri)
 JSON.parse(res)['data'].each { |p| puts "#{p['slug']}: #{p['monthlyExtractionCredits']}" }`
 ---
@@ -98,7 +98,7 @@ JSON.parse(res)['data'].each { |p| puts "#{p['slug']}: #{p['monthlyExtractionCre
       "id": 1,
       "slug": "free",
       "name": "Free",
-      "description": "Try DocExtract — perfect for kicking the tires.",
+      "description": "Try dvop.io — perfect for kicking the tires.",
       "monthlyExtractionCredits": 10,
       "sortOrder": 0,
       "isDefault": true,
@@ -141,7 +141,7 @@ JSON.parse(res)['data'].each { |p| puts "#{p['slug']}: #{p['monthlyExtractionCre
         <code>GET /products/:slug</code>:
     </p>
 
-    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>curl https://api.doc-extraction.com/products/pro</code></pre>
+    <pre class="not-prose my-4 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-[13px] text-gray-900"><code>curl https://api.dvop.io/products/pro</code></pre>
 
     <p>The response shape is the same single-product object as above.</p>
 </DocsLayout>
