@@ -131,7 +131,7 @@ export function Login() {
                         <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
                             D
                         </div>
-                        <h1 className="text-2xl font-semibold">DocExtract</h1>
+                        <h1 className="text-2xl font-semibold">dvop.io</h1>
                         <p className="text-muted-foreground text-sm">
                             Extract structured data from documents using AI
                         </p>

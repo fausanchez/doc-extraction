@@ -1,6 +1,7 @@
 {
     "$schema": "node_modules/wrangler/config-schema.json",
-    "name": "doc-extraction-api",
+    // TODO(manual): Rename Worker in Cloudflare dashboard from "doc-extraction-api" to "dvop-io-api".
+    "name": "dvop-io-api",
     "main": "./src/index.ts",
     "compatibility_date": "2025-08-03",
     "compatibility_flags": ["nodejs_compat"],
@@ -14,7 +15,8 @@
     "d1_databases": [
         {
             "binding": "DB",
-            "database_name": "doc-extraction-develop",
+            // TODO(manual): Rename D1 database in Cloudflare dashboard from "doc-extraction-develop" to "dvop-io-develop".
+            "database_name": "dvop-io-develop",
             "database_id": "REPLACE_WITH_YOUR_D1_ID",
             "migrations_dir": "./drizzle"
         }
@@ -22,7 +24,8 @@
     "r2_buckets": [
         {
             "binding": "BUCKET",
-            "bucket_name": "doc-extraction-develop"
+            // TODO(manual): Rename R2 bucket in Cloudflare dashboard from "doc-extraction-develop" to "dvop-io-develop".
+            "bucket_name": "dvop-io-develop"
         }
     ],
     // Cloudflare Workers Rate Limiting bindings.
@@ -54,20 +57,22 @@
     "env": {
         "develop": {
             "vars": {
-                "APP_URL": "https://app-develop.doc-extraction.com"
+                "APP_URL": "https://app-develop.dvop.io"
             },
             "workers_dev": false,
             "preview_urls": false,
             "routes": [
                 {
-                    "pattern": "api-develop.doc-extraction.com",
+                    // TODO(manual): Add custom domain "api-develop.dvop.io" in Cloudflare dashboard and remove old "api-develop.doc-extraction.com" route.
+                    "pattern": "api-develop.dvop.io",
                     "custom_domain": true
                 }
             ],
             "d1_databases": [
                 {
                     "binding": "DB",
-                    "database_name": "doc-extraction-develop",
+                    // TODO(manual): Rename D1 database in Cloudflare dashboard from "doc-extraction-develop" to "dvop-io-develop".
+                    "database_name": "dvop-io-develop",
                     "database_id": "REPLACE_WITH_YOUR_D1_ID",
                     "migrations_dir": "./drizzle"
                 }
@@ -75,7 +80,8 @@
             "r2_buckets": [
                 {
                     "binding": "BUCKET",
-                    "bucket_name": "doc-extraction-develop"
+                    // TODO(manual): Rename R2 bucket in Cloudflare dashboard from "doc-extraction-develop" to "dvop-io-develop".
+                    "bucket_name": "dvop-io-develop"
                 }
             ],
             "unsafe": {
@@ -103,20 +109,22 @@
         },
         "production": {
             "vars": {
-                "APP_URL": "https://app.doc-extraction.com"
+                "APP_URL": "https://app.dvop.io"
             },
             "workers_dev": false,
             "preview_urls": false,
             "routes": [
                 {
-                    "pattern": "api.doc-extraction.com",
+                    // TODO(manual): Add custom domain "api.dvop.io" in Cloudflare dashboard and remove old "api.doc-extraction.com" route.
+                    "pattern": "api.dvop.io",
                     "custom_domain": true
                 }
             ],
             "d1_databases": [
                 {
                     "binding": "DB",
-                    "database_name": "doc-extraction-production",
+                    // TODO(manual): Rename D1 database in Cloudflare dashboard from "doc-extraction-production" to "dvop-io-production".
+                    "database_name": "dvop-io-production",
                     "database_id": "REPLACE_WITH_YOUR_D1_ID",
                     "migrations_dir": "./drizzle"
                 }
@@ -124,7 +132,8 @@
             "r2_buckets": [
                 {
                     "binding": "BUCKET",
-                    "bucket_name": "doc-extraction-production"
+                    // TODO(manual): Rename R2 bucket in Cloudflare dashboard from "doc-extraction-production" to "dvop-io-production".
+                    "bucket_name": "dvop-io-production"
                 }
             ],
             "unsafe": {

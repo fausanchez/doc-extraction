@@ -6,9 +6,9 @@
         "deploy:develop": "wrangler deploy --env develop",
         "deploy:production": "wrangler deploy --env production",
         "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-        "db:migrate": "wrangler d1 migrations apply doc-extraction-develop --local",
-        "db:migrate:develop": "wrangler d1 migrations apply doc-extraction-develop --env develop --remote",
-        "db:migrate:production": "wrangler d1 migrations apply doc-extraction-production --env production --remote",
+        "db:migrate": "wrangler d1 migrations apply dvop-io-develop --local",
+        "db:migrate:develop": "wrangler d1 migrations apply dvop-io-develop --env develop --remote",
+        "db:migrate:production": "wrangler d1 migrations apply dvop-io-production --env production --remote",
         "db:generate": "drizzle-kit generate"
     },
     "dependencies": {

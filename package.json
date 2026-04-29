@@ -1,5 +1,5 @@
 {
-    "name": "doc-extraction",
+    "name": "dvop-io",
     "private": true,
     "scripts": {
         "build": "turbo run build",

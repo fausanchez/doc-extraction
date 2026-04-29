@@ -55,13 +55,13 @@ const responseParams = [
     }
 ]
 
-const sCurl = `curl https://api.doc-extraction.com/v1/extractions/7821 \\
+const sCurl = `curl https://api.dvop.io/v1/extractions/7821 \\
   -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE"`
 
 const sJs = `async function waitForExtraction(id, { tries = 30, intervalMs = 1500 } = {}) {
     for (let i = 0; i < tries; i++) {
         const res = await fetch(
-            \`https://api.doc-extraction.com/v1/extractions/\${id}\`,
+            \`https://api.dvop.io/v1/extractions/\${id}\`,
             { headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' } }
         )
         const { data } = await res.json()
@@ -80,7 +80,7 @@ const sPython = `import time, requests
 def wait_for_extraction(eid, tries=30, interval=1.5):
     for _ in range(tries):
         res = requests.get(
-            f'https://api.doc-extraction.com/v1/extractions/{eid}',
+            f'https://api.dvop.io/v1/extractions/{eid}',
             headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
             timeout=30,
         )
@@ -114,7 +114,7 @@ type extractionEnvelope struct {
 }
 
 func waitFor(id int) (map[string]interface{}, error) {
-    url := fmt.Sprintf("https://api.doc-extraction.com/v1/extractions/%d", id)
+    url := fmt.Sprintf("https://api.dvop.io/v1/extractions/%d", id)
     for i := 0; i < 30; i++ {
         req, _ := http.NewRequest("GET", url, nil)
         req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
@@ -138,7 +138,7 @@ const sRuby = `require 'net/http'
 require 'json'
 
 def wait_for(id, tries: 30, interval: 1.5)
-  uri = URI("https://api.doc-extraction.com/v1/extractions/#{id}")
+  uri = URI("https://api.dvop.io/v1/extractions/#{id}")
   tries.times do
     res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
       http.get(uri.path, 'Authorization' => 'Bearer dx_live_YOUR_TOKEN_HERE')

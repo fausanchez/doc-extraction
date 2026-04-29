@@ -116,7 +116,7 @@ export function ApiTokensPage() {
                 </CardHeader>
                 <CardContent>
                     <pre className="bg-muted overflow-x-auto rounded-md p-3 text-[12px]">
-{`curl -X POST https://api.doc-extraction.com/v1/extract \\
+{`curl -X POST https://api.dvop.io/v1/extract \\
   -H "Authorization: Bearer dx_live_..." \\
   -F "file=@invoice.pdf" \\
   -F "template_id=42"

@@ -9,8 +9,8 @@
         "build:production": "astro build",
         "preview": "astro preview",
         "astro": "astro",
-        "deploy:develop": "pnpm build:develop && wrangler pages deploy dist --project-name doc-extraction-website --branch develop",
-        "deploy:production": "pnpm build:production && wrangler pages deploy dist --project-name doc-extraction-website"
+        "deploy:develop": "pnpm build:develop && wrangler pages deploy dist --project-name dvop-io-website --branch develop",
+        "deploy:production": "pnpm build:production && wrangler pages deploy dist --project-name dvop-io-website"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.18",
