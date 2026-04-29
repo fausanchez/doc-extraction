@@ -3,27 +3,72 @@ import { NavMain } from '@/components/sidebar/nav-main.tsx'
 import {
     Sidebar,
     SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupContent,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem
 } from '@repo/ui/components/ui/sidebar.tsx'
-import { FileText, LayoutTemplate, Cpu, LayoutDashboard, User } from 'lucide-react'
-import { Link } from 'react-router'
-import { urlDashboard, urlDocuments, urlTemplates, urlExtractions, urlProfile } from '@/urls'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuTrigger
+} from '@repo/ui/components/ui/dropdown-menu.tsx'
+import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar.tsx'
+import {
+    FileText,
+    LayoutTemplate,
+    Cpu,
+    LayoutDashboard,
+    User,
+    ChevronsUpDown,
+    LogOut,
+    Search,
+    Settings,
+    Sparkles
+} from 'lucide-react'
+import { Link, useNavigate } from 'react-router'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { tokenAtom, userAtom } from '@/stores/auth'
+import {
+    urlDashboard,
+    urlDocuments,
+    urlTemplates,
+    urlExtractions,
+    urlProfile,
+    urlLogin
+} from '@/urls'
 
-const navItems = [
-    { title: 'Dashboard', url: urlDashboard(), icon: LayoutDashboard },
-    { title: 'Documents', url: urlDocuments(), icon: FileText },
-    { title: 'Templates', url: urlTemplates(), icon: LayoutTemplate },
-    { title: 'Extractions', url: urlExtractions(), icon: Cpu },
-    { title: 'Profile', url: urlProfile(), icon: User }
+const workspaceItems = [
+    { title: 'Dashboard', url: urlDashboard(), icon: LayoutDashboard, kbd: 'D' },
+    { title: 'Templates', url: urlTemplates(), icon: LayoutTemplate, kbd: 'T' },
+    { title: 'Documents', url: urlDocuments(), icon: FileText, kbd: 'F' },
+    { title: 'Extractions', url: urlExtractions(), icon: Cpu, kbd: 'E' }
 ]
 
+const accountItems = [{ title: 'Profile', url: urlProfile(), icon: User }]
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const user = useAtomValue(userAtom)
+    const setToken = useSetAtom(tokenAtom)
+    const setUser = useSetAtom(userAtom)
+    const navigate = useNavigate()
+
+    const handleLogout = () => {
+        setToken(null)
+        setUser(null)
+        navigate(urlLogin(), { viewTransition: true })
+    }
+
     return (
         <Sidebar collapsible="offcanvas" {...props}>
-            <SidebarHeader>
+            <SidebarHeader className="border-b border-sidebar-border/60 pb-3">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton
@@ -31,20 +76,122 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             className="data-[slot=sidebar-menu-button]:!p-1.5"
                         >
                             <Link to={urlDashboard()} viewTransition>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex size-6 items-center justify-center rounded bg-primary text-primary-foreground font-bold text-xs">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-xs font-bold text-white shadow-sm">
                                         D
                                     </div>
-                                    <span className="font-semibold">DocExtract</span>
+                                    <div className="flex min-w-0 flex-col">
+                                        <span className="truncate text-sm font-semibold leading-tight">
+                                            DocExtract
+                                        </span>
+                                        <span className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">
+                                            Workspace
+                                        </span>
+                                    </div>
                                 </div>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
+
+                {/* search trigger (visual only — could open a Cmd+K palette) */}
+                <button
+                    type="button"
+                    className="mt-2 flex h-8 w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 px-2.5 text-xs text-muted-foreground hover:bg-sidebar-accent transition-colors"
+                >
+                    <Search className="size-3.5" />
+                    <span className="flex-1 text-left">Search…</span>
+                    <span className="kbd">⌘K</span>
+                </button>
             </SidebarHeader>
+
             <SidebarContent>
-                <NavMain items={navItems} />
+                <NavMain label="Workspace" items={workspaceItems} />
+                <NavMain label="Account" items={accountItems} />
+
+                <SidebarGroup className="mt-auto">
+                    <SidebarGroupContent>
+                        <Link
+                            to={urlTemplates()}
+                            viewTransition
+                            className="flex items-center gap-2 rounded-lg border border-sidebar-border bg-gradient-to-br from-indigo-500/8 via-violet-500/8 to-fuchsia-500/8 p-3 transition-colors hover:bg-sidebar-accent"
+                        >
+                            <Sparkles className="size-4 text-violet-500" />
+                            <div className="min-w-0">
+                                <p className="text-xs font-medium leading-tight">Quick extract</p>
+                                <p className="truncate text-[11px] text-muted-foreground">
+                                    Open a template to upload & run
+                                </p>
+                            </div>
+                        </Link>
+                    </SidebarGroupContent>
+                </SidebarGroup>
             </SidebarContent>
+
+            <SidebarFooter className="border-t border-sidebar-border/60 pt-2">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <SidebarMenuButton
+                                    size="lg"
+                                    className="data-[slot=sidebar-menu-button]:!p-2"
+                                >
+                                    <Avatar size="sm">
+                                        <AvatarImage src={user?.avatar} alt={user?.name} />
+                                        <AvatarFallback className="text-[10px]">
+                                            {user?.name?.charAt(0).toUpperCase() ?? 'U'}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="grid flex-1 text-left">
+                                        <span className="truncate text-sm font-medium leading-tight">
+                                            {user?.name ?? 'User'}
+                                        </span>
+                                        <span className="truncate text-[11px] text-muted-foreground">
+                                            {user?.email ?? ''}
+                                        </span>
+                                    </div>
+                                    <ChevronsUpDown className="ml-auto size-4 opacity-50" />
+                                </SidebarMenuButton>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                side="right"
+                                align="end"
+                                className="w-56"
+                            >
+                                <DropdownMenuLabel className="font-normal">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium">{user?.name}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {user?.email}
+                                        </span>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link to={urlProfile()} viewTransition>
+                                        <User />
+                                        Profile
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem disabled>
+                                    <Settings />
+                                    Settings
+                                    <DropdownMenuShortcut>⌘,</DropdownMenuShortcut>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    variant="destructive"
+                                    onSelect={handleLogout}
+                                >
+                                    <LogOut />
+                                    Log out
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
         </Sidebar>
     )
 }
