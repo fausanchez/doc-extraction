@@ -25,6 +25,32 @@
             "bucket_name": "doc-extraction-develop"
         }
     ],
+    // Cloudflare Workers Rate Limiting bindings.
+    // `period` must be 10 or 60. `namespace_id` is a per-Worker identifier
+    // (any digit string) that scopes the bucket — keeping it stable across
+    // environments shares the same counter namespace.
+    "unsafe": {
+        "bindings": [
+            {
+                "name": "AUTH_RATE_LIMITER",
+                "type": "ratelimit",
+                "namespace_id": "1001",
+                "simple": { "limit": 10, "period": 60 }
+            },
+            {
+                "name": "UPLOAD_RATE_LIMITER",
+                "type": "ratelimit",
+                "namespace_id": "1002",
+                "simple": { "limit": 30, "period": 60 }
+            },
+            {
+                "name": "EXTRACTION_RATE_LIMITER",
+                "type": "ratelimit",
+                "namespace_id": "1003",
+                "simple": { "limit": 20, "period": 60 }
+            }
+        ]
+    },
     "env": {
         "develop": {
             "vars": {
@@ -51,7 +77,29 @@
                     "binding": "BUCKET",
                     "bucket_name": "doc-extraction-develop"
                 }
-            ]
+            ],
+            "unsafe": {
+                "bindings": [
+                    {
+                        "name": "AUTH_RATE_LIMITER",
+                        "type": "ratelimit",
+                        "namespace_id": "1001",
+                        "simple": { "limit": 10, "period": 60 }
+                    },
+                    {
+                        "name": "UPLOAD_RATE_LIMITER",
+                        "type": "ratelimit",
+                        "namespace_id": "1002",
+                        "simple": { "limit": 30, "period": 60 }
+                    },
+                    {
+                        "name": "EXTRACTION_RATE_LIMITER",
+                        "type": "ratelimit",
+                        "namespace_id": "1003",
+                        "simple": { "limit": 20, "period": 60 }
+                    }
+                ]
+            }
         },
         "production": {
             "vars": {
@@ -78,7 +126,29 @@
                     "binding": "BUCKET",
                     "bucket_name": "doc-extraction-production"
                 }
-            ]
+            ],
+            "unsafe": {
+                "bindings": [
+                    {
+                        "name": "AUTH_RATE_LIMITER",
+                        "type": "ratelimit",
+                        "namespace_id": "1001",
+                        "simple": { "limit": 10, "period": 60 }
+                    },
+                    {
+                        "name": "UPLOAD_RATE_LIMITER",
+                        "type": "ratelimit",
+                        "namespace_id": "1002",
+                        "simple": { "limit": 30, "period": 60 }
+                    },
+                    {
+                        "name": "EXTRACTION_RATE_LIMITER",
+                        "type": "ratelimit",
+                        "namespace_id": "1003",
+                        "simple": { "limit": 20, "period": 60 }
+                    }
+                ]
+            }
         }
     }
 }

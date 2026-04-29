@@ -3,6 +3,9 @@ import { drizzle } from 'drizzle-orm/d1'
 import { eq, and, desc } from 'drizzle-orm'
 import { documents, extractions } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
+import { zValidator } from '@/lib/utils'
+import { idParamSchema } from '@/lib/validators'
+import { rateLimit, keyByUser } from '@/middleware/rate-limit'
 
 const router = new Hono<{ Bindings: CloudflareBindings; Variables: { userId: number; role: string } }>()
 
@@ -22,9 +25,9 @@ router.get('/', async (c) => {
 })
 
 // Get single document
-router.get('/:id', async (c) => {
+router.get('/:id', zValidator('param', idParamSchema), async (c) => {
     const userId = c.get('userId')
-    const id = Number(c.req.param('id'))
+    const { id } = c.req.valid('param')
     const db = drizzle(c.env.DB)
 
     const doc = await db
@@ -46,50 +49,57 @@ router.get('/:id', async (c) => {
     return c.json({ data: { ...doc[0], extractions: docExtractions }, error: false })
 })
 
-// Upload document
-router.post('/upload', async (c) => {
-    const userId = c.get('userId')
-    const formData = await c.req.formData()
-    const file = formData.get('file') as File | null
+// Upload document — per-user rate limit prevents storage flooding.
+router.post(
+    '/upload',
+    rateLimit((env) => env.UPLOAD_RATE_LIMITER, keyByUser),
+    async (c) => {
+        const userId = c.get('userId')
+        const formData = await c.req.formData()
+        const file = formData.get('file') as File | null
 
-    if (!file) {
-        return c.json({ data: null, error: true, message: 'File not found' }, 400)
-    }
+        if (!file) {
+            return c.json({ data: null, error: true, message: 'File not found' }, 400)
+        }
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
-        return c.json({ data: null, error: true, message: 'Unsupported file type' }, 400)
-    }
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
+        if (!allowedTypes.includes(file.type)) {
+            return c.json({ data: null, error: true, message: 'Unsupported file type' }, 400)
+        }
 
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSize) {
-        return c.json({ data: null, error: true, message: 'File exceeds the maximum size of 10MB' }, 400)
-    }
+        const maxSize = 10 * 1024 * 1024 // 10MB
+        if (file.size > maxSize) {
+            return c.json(
+                { data: null, error: true, message: 'File exceeds the maximum size of 10MB' },
+                400
+            )
+        }
 
-    const key = `${userId}/${Date.now()}-${file.name}`
-    await c.env.BUCKET.put(key, file.stream(), {
-        httpMetadata: { contentType: file.type }
-    })
-
-    const db = drizzle(c.env.DB)
-    const [doc] = await db
-        .insert(documents)
-        .values({
-            userId,
-            name: file.name,
-            filePath: key,
-            mimeType: file.type,
-            size: file.size
+        const key = `${userId}/${Date.now()}-${file.name}`
+        await c.env.BUCKET.put(key, file.stream(), {
+            httpMetadata: { contentType: file.type }
         })
-        .returning()
 
-    return c.json({ data: doc, error: false })
-})
+        const db = drizzle(c.env.DB)
+        const [doc] = await db
+            .insert(documents)
+            .values({
+                userId,
+                name: file.name,
+                filePath: key,
+                mimeType: file.type,
+                size: file.size
+            })
+            .returning()
+
+        return c.json({ data: doc, error: false })
+    }
+)
 
 // Delete document
-router.delete('/:id', async (c) => {
+router.delete('/:id', zValidator('param', idParamSchema), async (c) => {
     const userId = c.get('userId')
-    const id = Number(c.req.param('id'))
+    const { id } = c.req.valid('param')
     const db = drizzle(c.env.DB)
 
     const doc = await db

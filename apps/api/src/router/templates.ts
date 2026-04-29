@@ -5,6 +5,7 @@ import { eq, and, desc } from 'drizzle-orm'
 import { templates } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
 import { zValidator } from '@/lib/utils'
+import { idParamSchema } from '@/lib/validators'
 
 const router = new Hono<{ Bindings: CloudflareBindings; Variables: { userId: number; role: string } }>()
 
@@ -38,9 +39,9 @@ router.get('/', async (c) => {
 })
 
 // Get single template
-router.get('/:id', async (c) => {
+router.get('/:id', zValidator('param', idParamSchema), async (c) => {
     const userId = c.get('userId')
-    const id = Number(c.req.param('id'))
+    const { id } = c.req.valid('param')
     const db = drizzle(c.env.DB)
 
     const tmp = await db
@@ -75,49 +76,52 @@ router.post('/', zValidator('json', templateSchema), async (c) => {
     return c.json({ data: tmp, error: false })
 })
 
-// Update template
-router.put('/:id', zValidator('json', templateSchema), async (c) => {
+// Update template — owner-scoped UPDATE prevents IDOR (previously the WHERE
+// clause filtered by id only, allowing cross-user modification).
+router.put(
+    '/:id',
+    zValidator('param', idParamSchema),
+    zValidator('json', templateSchema),
+    async (c) => {
+        const userId = c.get('userId')
+        const { id } = c.req.valid('param')
+        const body = c.req.valid('json')
+        const db = drizzle(c.env.DB)
+
+        const [tmp] = await db
+            .update(templates)
+            .set({
+                name: body.name,
+                description: body.description,
+                schema: JSON.stringify(body.schema)
+            })
+            .where(and(eq(templates.id, id), eq(templates.userId, userId)))
+            .returning()
+
+        if (!tmp) {
+            return c.json({ data: null, error: true, message: 'Template not found' }, 404)
+        }
+
+        return c.json({ data: tmp, error: false })
+    }
+)
+
+// Delete template (soft) — owner-scoped UPDATE
+router.delete('/:id', zValidator('param', idParamSchema), async (c) => {
     const userId = c.get('userId')
-    const id = Number(c.req.param('id'))
-    const body = c.req.valid('json')
+    const { id } = c.req.valid('param')
     const db = drizzle(c.env.DB)
 
-    const existing = await db
-        .select({ id: templates.id })
-        .from(templates)
-        .where(and(eq(templates.id, id), eq(templates.userId, userId)))
-        .limit(1)
-
-    if (existing.length === 0) {
-        return c.json({ data: null, error: true, message: 'Template not found' }, 404)
-    }
-
-    const [tmp] = await db
+    const result = await db
         .update(templates)
-        .set({ name: body.name, description: body.description, schema: JSON.stringify(body.schema) })
-        .where(eq(templates.id, id))
-        .returning()
-
-    return c.json({ data: tmp, error: false })
-})
-
-// Delete template (soft)
-router.delete('/:id', async (c) => {
-    const userId = c.get('userId')
-    const id = Number(c.req.param('id'))
-    const db = drizzle(c.env.DB)
-
-    const existing = await db
-        .select({ id: templates.id })
-        .from(templates)
+        .set({ status: 'deleted' })
         .where(and(eq(templates.id, id), eq(templates.userId, userId)))
-        .limit(1)
+        .returning({ id: templates.id })
 
-    if (existing.length === 0) {
+    if (result.length === 0) {
         return c.json({ data: null, error: true, message: 'Template not found' }, 404)
     }
 
-    await db.update(templates).set({ status: 'deleted' }).where(eq(templates.id, id))
     return c.json({ data: null, error: false })
 })
 
