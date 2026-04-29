@@ -1,6 +1,6 @@
 import ky from 'ky'
 import { getDefaultStore } from 'jotai'
-import { refreshTokenAtom, tokenAtom, userAtom } from '@/stores/auth'
+import { tokenAtom, userAtom } from '@/stores/auth'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8787'
 
@@ -11,34 +11,30 @@ export type ApiResponse<T> =
 type LoginPayload = {
     accessToken: string
     accessTokenExpiresIn: number
-    refreshToken: string
-    refreshTokenExpiresIn: number
     user: { id: number; email: string; name: string; avatar: string }
 }
 
 type RefreshPayload = {
     accessToken: string
     accessTokenExpiresIn: number
-    refreshToken: string
-    refreshTokenExpiresIn: number
 }
 
 const store = getDefaultStore()
 
-// Refresh-token rotation must be single-flight: if multiple requests fire and
-// hit 401 simultaneously, only one /auth/refresh call should run.
+// Refresh-token rotation must be single-flight: if N requests fire and all
+// hit 401 simultaneously, only one /auth/refresh call should run. The shared
+// promise lets every concurrent caller await the same rotation.
 let pendingRefresh: Promise<string | null> | null = null
 
 async function refreshAccessToken(): Promise<string | null> {
     if (pendingRefresh) return pendingRefresh
 
-    const refreshToken = store.get(refreshTokenAtom)
-    if (!refreshToken) return null
-
     pendingRefresh = (async () => {
         try {
             const res = await ky.post(`${API_URL}/auth/refresh`, {
-                json: { refreshToken },
+                // The refresh token lives in an httpOnly cookie — the browser
+                // attaches it automatically when `credentials: 'include'`.
+                credentials: 'include',
                 throwHttpErrors: false
             })
             if (!res.ok) {
@@ -51,7 +47,6 @@ async function refreshAccessToken(): Promise<string | null> {
                 return null
             }
             store.set(tokenAtom, body.data.accessToken)
-            store.set(refreshTokenAtom, body.data.refreshToken)
             return body.data.accessToken
         } catch {
             clearAuth()
@@ -66,17 +61,20 @@ async function refreshAccessToken(): Promise<string | null> {
 
 function clearAuth(): void {
     store.set(tokenAtom, null)
-    store.set(refreshTokenAtom, null)
     store.set(userAtom, null)
 }
 
-// Endpoints that must NOT trigger a refresh-and-retry — they themselves are
-// the auth surface.
+// Endpoints that must NOT trigger refresh-and-retry — they themselves are the
+// auth surface, and looping would mask the real failure.
 const NO_REFRESH_PATHS = ['/auth/refresh', '/auth/google', '/auth/github', '/auth/logout']
 
 const apiClient = ky.create({
     prefixUrl: API_URL,
     retry: { limit: 0 },
+    // Always send cookies — needed for the refresh / logout endpoints which
+    // rely on the dx_refresh httpOnly cookie. Other endpoints don't read any
+    // cookie, so this is a no-op for them.
+    credentials: 'include',
     hooks: {
         beforeRequest: [
             (request) => {
@@ -114,16 +112,11 @@ export const authApi = {
         apiClient
             .post('auth/github', { json: { code } })
             .json<ApiResponse<LoginPayload>>(),
-    refresh: (refreshToken: string) =>
+    refresh: () =>
+        apiClient.post('auth/refresh').json<ApiResponse<RefreshPayload>>(),
+    logout: () =>
         apiClient
-            .post('auth/refresh', { json: { refreshToken } })
-            .json<ApiResponse<RefreshPayload>>(),
-    logout: (refreshToken: string | null) =>
-        apiClient
-            .post('auth/logout', {
-                json: refreshToken ? { refreshToken } : {},
-                throwHttpErrors: false
-            })
+            .post('auth/logout', { throwHttpErrors: false })
             .json<ApiResponse<null>>(),
     me: () =>
         apiClient.get('auth/me').json<

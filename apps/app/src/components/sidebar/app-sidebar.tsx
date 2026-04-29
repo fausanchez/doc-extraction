@@ -35,7 +35,7 @@ import {
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { refreshTokenAtom, tokenAtom, userAtom } from '@/stores/auth'
+import { tokenAtom, userAtom } from '@/stores/auth'
 import { authApi } from '@/api-client'
 import {
     urlDashboard,
@@ -57,22 +57,21 @@ const accountItems = [{ title: 'Profile', url: urlProfile(), icon: User }]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const user = useAtomValue(userAtom)
-    const refreshToken = useAtomValue(refreshTokenAtom)
     const setToken = useSetAtom(tokenAtom)
-    const setRefreshToken = useSetAtom(refreshTokenAtom)
     const setUser = useSetAtom(userAtom)
     const navigate = useNavigate()
 
     const handleLogout = async () => {
-        // Best-effort server-side revocation; ignore network errors so the
-        // user can always sign out client-side.
+        // Best-effort server-side revocation; the refresh token rides in an
+        // httpOnly cookie attached automatically by the browser, so the call
+        // takes no body. Ignore network errors so logout always succeeds
+        // client-side.
         try {
-            await authApi.logout(refreshToken)
+            await authApi.logout()
         } catch {
             // ignore
         }
         setToken(null)
-        setRefreshToken(null)
         setUser(null)
         navigate(urlLogin(), { viewTransition: true })
     }

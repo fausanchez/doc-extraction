@@ -1,6 +1,6 @@
 import { urlProfile } from '@/urls'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { refreshTokenAtom, tokenAtom, userAtom } from '@/stores/auth'
+import { tokenAtom, userAtom } from '@/stores/auth'
 import { authApi } from '@/api-client'
 import { Button } from '@repo/ui/components/ui/button.tsx'
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/ui/card.tsx'
@@ -11,22 +11,20 @@ import { LogOut } from 'lucide-react'
 
 function Profile() {
     const user = useAtomValue(userAtom)
-    const refreshToken = useAtomValue(refreshTokenAtom)
     const setToken = useSetAtom(tokenAtom)
-    const setRefreshToken = useSetAtom(refreshTokenAtom)
     const setUser = useSetAtom(userAtom)
     const navigate = useNavigate()
 
     const handleLogout = async () => {
         // Best-effort server-side revocation; ignore network errors so the
-        // user can always sign out client-side.
+        // user can always sign out client-side. The refresh cookie is
+        // attached automatically by the browser.
         try {
-            await authApi.logout(refreshToken)
+            await authApi.logout()
         } catch {
             // ignore
         }
         setToken(null)
-        setRefreshToken(null)
         setUser(null)
         navigate(urlLogin(), { viewTransition: true })
     }
