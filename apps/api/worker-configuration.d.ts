@@ -31,4 +31,7 @@ interface CloudflareBindings {
     // credentials present at request time; the registry's `isConfigured`
     // check fails-fast on misconfiguration.
     ANTHROPIC_API_KEY: string
+    OPENAI_API_KEY?: string
+    // Optional model override for the openai provider (defaults to gpt-4o-mini).
+    OPENAI_MODEL?: string
 }

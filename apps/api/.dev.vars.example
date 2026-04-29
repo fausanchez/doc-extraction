@@ -16,3 +16,7 @@ GITHUB_CLIENT_SECRET=your-github-client-secret
 
 # Provider credentials. Only the active provider's keys need to be set.
 ANTHROPIC_API_KEY=sk-ant-...
+
+# OpenAI provider — set EXTRACTION_PROVIDER=openai above to enable.
+# OPENAI_API_KEY=sk-...
+# OPENAI_MODEL=gpt-4o-mini
