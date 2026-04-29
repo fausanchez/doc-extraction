@@ -8,7 +8,15 @@ import {
     SidebarMenuButton,
     SidebarMenuItem
 } from '@repo/ui/components/ui/sidebar.tsx'
-import { FileText, LayoutTemplate, Cpu, LayoutDashboard, User, CreditCard } from 'lucide-react'
+import {
+    FileText,
+    LayoutTemplate,
+    Cpu,
+    LayoutDashboard,
+    User,
+    CreditCard,
+    KeyRound
+} from 'lucide-react'
 import { Link } from 'react-router'
 import {
     urlDashboard,
@@ -16,7 +24,8 @@ import {
     urlTemplates,
     urlExtractions,
     urlProfile,
-    urlBilling
+    urlBilling,
+    urlApiTokens
 } from '@/urls'
 
 const navItems = [
@@ -24,6 +33,7 @@ const navItems = [
     { title: 'Documents', url: urlDocuments(), icon: FileText },
     { title: 'Templates', url: urlTemplates(), icon: LayoutTemplate },
     { title: 'Extractions', url: urlExtractions(), icon: Cpu },
+    { title: 'API tokens', url: urlApiTokens(), icon: KeyRound },
     { title: 'Billing', url: urlBilling(), icon: CreditCard },
     { title: 'Profile', url: urlProfile(), icon: User }
 ]
