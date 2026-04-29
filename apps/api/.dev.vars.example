@@ -1,7 +1,10 @@
 # Copy this file to .dev.vars — it's loaded automatically by `wrangler dev`
 # NEVER commit .dev.vars
 
-JWT_SECRET=any-random-string-for-local-dev
+# Must be at least 32 characters (HMAC-SHA256 secret).
+# Generate one with: openssl rand -hex 32
+JWT_SECRET=please-replace-with-a-long-random-32-byte-secret
+
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GITHUB_CLIENT_ID=your-github-client-id
