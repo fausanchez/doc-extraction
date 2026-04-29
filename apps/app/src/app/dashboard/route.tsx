@@ -37,5 +37,8 @@ export const route = {
                 usage: null
             }
         }
+    },
+    handle: {
+        breadcrumb: []
     }
 }

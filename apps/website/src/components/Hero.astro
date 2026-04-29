@@ -1,70 +1,222 @@
 ---
 const APP_URL = import.meta.env.PUBLIC_APP_URL ?? 'http://localhost:5173'
+
+const fields = [
+    { key: 'invoice_number', value: '"INV-2024-0042"', type: 'string' },
+    { key: 'issue_date', value: '"2024-01-15"', type: 'date' },
+    { key: 'total_amount', value: '1250.00', type: 'number' },
+    { key: 'currency', value: '"USD"', type: 'string' },
+    { key: 'vendor.name', value: '"Acme Corp"', type: 'string' },
+    { key: 'line_items', value: '[ … 4 items ]', type: 'array' }
+]
 ---
 
-<section class="flex min-h-svh flex-col items-center justify-center px-6 pt-16 text-center">
-    <div class="mx-auto max-w-3xl">
-        <span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
-            Powered by AI
-        </span>
+<section class="relative isolate overflow-hidden px-6 pt-32 pb-24 sm:pt-40 lg:pt-48">
+    <!-- ambient glow blobs -->
+    <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 -top-40 -z-10 flex justify-center">
+        <div class="size-[40rem] rounded-full bg-gradient-to-br from-brand-500/30 via-violet-500/20 to-fuchsia-500/20 blur-3xl animate-glow"></div>
+    </div>
+    <div aria-hidden="true" class="pointer-events-none absolute -left-40 top-1/3 -z-10 size-[24rem] rounded-full bg-cyan-500/20 blur-3xl"></div>
+    <div aria-hidden="true" class="pointer-events-none absolute -right-40 top-1/4 -z-10 size-[24rem] rounded-full bg-fuchsia-500/20 blur-3xl"></div>
 
-        <h1 class="mt-6 text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
-            Extract data from<br />
-            <span class="text-gray-500">any document</span>
+    <div class="mx-auto max-w-6xl text-center">
+        <div class="animate-fade-up [animation-delay:0ms]">
+            <a
+                href="#features"
+                class="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-ink-200 backdrop-blur-md transition-colors hover:border-white/20 hover:bg-white/10"
+            >
+                <span class="relative flex size-1.5">
+                    <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex size-1.5 rounded-full bg-emerald-400"></span>
+                </span>
+                <span>New: GPT-5 vision models, 10× faster extraction</span>
+                <svg class="size-3 text-ink-400 transition-transform group-hover:translate-x-0.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M3 6h6M7 3l3 3-3 3" />
+                </svg>
+            </a>
+        </div>
+
+        <h1 class="mx-auto mt-8 max-w-4xl text-balance text-5xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl animate-fade-up [animation-delay:100ms]">
+            Turn any document into
+            <span class="text-gradient-brand">structured data</span>
+            in seconds
         </h1>
 
-        <p class="mt-6 text-lg text-gray-500 max-w-xl mx-auto">
-            Upload PDFs and images, define the data structure you need, and get
-            structured results in seconds with artificial intelligence.
+        <p class="mx-auto mt-6 max-w-2xl text-pretty text-lg text-ink-300 sm:text-xl animate-fade-up [animation-delay:200ms]">
+            DocExtract uses next-generation vision models to read PDFs and images,
+            understand context, and return clean JSON that matches the schema you define —
+            production-ready, no parsing required.
         </p>
 
-        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row animate-fade-up [animation-delay:300ms]">
             <a
                 href={APP_URL}
-                class="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+                class="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-brand-500 via-violet-500 to-fuchsia-500 px-7 text-sm font-semibold text-white shadow-xl shadow-brand-600/40 transition-all hover:shadow-2xl hover:shadow-brand-500/60 sm:w-auto"
             >
-                Get started for free
+                <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full"></span>
+                Start free — no card required
+                <svg class="size-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
             </a>
             <a
                 href="#how"
-                class="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-gray-200 px-6 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-7 text-sm font-medium text-ink-100 backdrop-blur-md transition-all hover:border-white/20 hover:bg-white/10 sm:w-auto"
             >
-                See how it works
+                <svg class="size-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="8" cy="8" r="6.5" />
+                    <path d="M6.5 5.5l4 2.5-4 2.5z" fill="currentColor" stroke="none" />
+                </svg>
+                Watch a 60s demo
             </a>
         </div>
+
+        <p class="mt-6 text-xs text-ink-500 animate-fade-up [animation-delay:400ms]">
+            Free up to 100 documents/month · No credit card · 99.9% uptime SLA
+        </p>
     </div>
 
-    <!-- Mock UI preview -->
-    <div class="mt-16 w-full max-w-4xl">
-        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-xl shadow-gray-100">
-            <div class="flex items-center gap-1.5 mb-4">
-                <div class="size-3 rounded-full bg-red-400"></div>
-                <div class="size-3 rounded-full bg-yellow-400"></div>
-                <div class="size-3 rounded-full bg-green-400"></div>
+    <!-- Dashboard preview -->
+    <div class="relative mx-auto mt-20 max-w-6xl animate-fade-up [animation-delay:500ms]">
+        <!-- glow under preview -->
+        <div aria-hidden="true" class="pointer-events-none absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-r from-brand-500/30 via-violet-500/30 to-fuchsia-500/30 opacity-50 blur-2xl"></div>
+
+        <div class="overflow-hidden rounded-2xl border border-white/10 bg-ink-900/80 shadow-2xl shadow-black/60 backdrop-blur-xl">
+            <!-- window chrome -->
+            <div class="flex items-center justify-between border-b border-white/10 bg-ink-900/50 px-4 py-3">
+                <div class="flex items-center gap-1.5">
+                    <span class="size-3 rounded-full bg-red-500/80"></span>
+                    <span class="size-3 rounded-full bg-yellow-500/80"></span>
+                    <span class="size-3 rounded-full bg-emerald-500/80"></span>
+                </div>
+                <div class="hidden items-center gap-2 rounded-md border border-white/10 bg-ink-950/60 px-3 py-1 text-[11px] font-mono text-ink-400 sm:flex">
+                    <svg class="size-3 text-emerald-400" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="5" width="8" height="6" rx="1" />
+                        <path d="M4 5V3.5a2 2 0 014 0V5" />
+                    </svg>
+                    app.docextract.dev/extract
+                </div>
+                <div class="hidden items-center gap-1.5 sm:flex">
+                    <span class="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400 ring-1 ring-emerald-500/30">
+                        ● Live
+                    </span>
+                </div>
             </div>
-            <div class="grid grid-cols-2 gap-4 text-left">
-                <div class="rounded-xl border border-gray-200 bg-white p-4">
-                    <p class="text-xs font-medium text-gray-500 mb-3">Uploaded document</p>
-                    <div class="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 p-3">
-                        <div class="size-8 rounded bg-red-100 flex items-center justify-center text-xs font-bold text-red-600">PDF</div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-800">invoice-001.pdf</p>
-                            <p class="text-xs text-gray-400">245 KB</p>
+
+            <!-- content -->
+            <div class="grid grid-cols-1 gap-px bg-white/5 lg:grid-cols-12">
+                <!-- left: document -->
+                <div class="bg-ink-900 p-5 lg:col-span-5">
+                    <div class="mb-3 flex items-center justify-between">
+                        <p class="text-xs font-medium uppercase tracking-wider text-ink-500">Source</p>
+                        <span class="rounded-md bg-white/5 px-1.5 py-0.5 text-[10px] font-mono text-ink-400">PDF · 2 pages</span>
+                    </div>
+                    <div class="rounded-xl border border-white/10 bg-gradient-to-br from-ink-800/80 to-ink-900 p-4">
+                        <div class="flex items-start gap-3">
+                            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500/20 to-orange-500/20 ring-1 ring-rose-500/30">
+                                <svg class="size-5 text-rose-400" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M5 2h7l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z" />
+                                    <path d="M12 2v4h4" />
+                                </svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-medium text-ink-100">invoice-acme-2024-0042.pdf</p>
+                                <p class="mt-0.5 text-xs text-ink-500">245 KB · uploaded just now</p>
+                            </div>
+                            <span class="shrink-0 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400 ring-1 ring-emerald-500/30">
+                                ✓ Parsed
+                            </span>
+                        </div>
+                        <div class="mt-4 space-y-1.5">
+                            <div class="h-2 w-full rounded-full bg-white/5"></div>
+                            <div class="h-2 w-11/12 rounded-full bg-white/5"></div>
+                            <div class="h-2 w-9/12 rounded-full bg-white/5"></div>
+                            <div class="h-2 w-10/12 rounded-full bg-white/5"></div>
+                            <div class="h-2 w-7/12 rounded-full bg-white/5"></div>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-2">
+                            <div class="rounded-lg border border-white/5 bg-ink-950/60 p-2.5">
+                                <p class="text-[10px] uppercase tracking-wider text-ink-500">Pages</p>
+                                <p class="mt-0.5 text-sm font-semibold text-ink-100">2</p>
+                            </div>
+                            <div class="rounded-lg border border-white/5 bg-ink-950/60 p-2.5">
+                                <p class="text-[10px] uppercase tracking-wider text-ink-500">Tokens</p>
+                                <p class="mt-0.5 text-sm font-semibold text-ink-100">1,840</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="rounded-xl border border-gray-200 bg-white p-4">
-                    <p class="text-xs font-medium text-gray-500 mb-3">Extracted data</p>
-                    <div class="space-y-2">
-                        {[['Number', 'INV-2024-0042'], ['Date', '01/15/2024'], ['Total', '$1,250.00'], ['Vendor', 'Acme Corp']].map(([k, v]) => (
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="text-gray-500">{k}</span>
-                                <span class="font-medium text-gray-800">{v}</span>
-                            </div>
-                        ))}
+
+                <!-- middle: arrow -->
+                <div class="hidden items-center justify-center bg-ink-900 lg:col-span-1 lg:flex">
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="rounded-full border border-white/10 bg-gradient-to-br from-brand-500/20 to-violet-500/20 p-2 ring-1 ring-brand-500/30">
+                            <svg class="size-4 text-brand-300" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 8h10M9 4l4 4-4 4" />
+                            </svg>
+                        </div>
+                        <span class="font-mono text-[9px] uppercase tracking-wider text-ink-500">AI</span>
+                    </div>
+                </div>
+
+                <!-- right: extracted JSON -->
+                <div class="bg-ink-900 p-5 lg:col-span-6">
+                    <div class="mb-3 flex items-center justify-between">
+                        <p class="text-xs font-medium uppercase tracking-wider text-ink-500">Extracted JSON</p>
+                        <div class="flex items-center gap-1.5">
+                            <span class="rounded-md bg-brand-500/10 px-2 py-0.5 text-[10px] font-medium text-brand-300 ring-1 ring-brand-500/30">schema: Invoice v2</span>
+                            <button class="rounded-md border border-white/10 bg-white/5 p-1 text-ink-300 transition-colors hover:bg-white/10 hover:text-white">
+                                <svg class="size-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                                    <path d="M3 7V2a1 1 0 011-1h5" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-xl border border-white/10 bg-ink-950/60 font-mono text-[12px] leading-relaxed">
+                        <div class="border-b border-white/5 px-4 py-2 text-ink-500">
+                            <span class="text-ink-400">{'{'}</span>
+                        </div>
+                        <div class="space-y-1 px-4 py-3">
+                            {fields.map((f, i) => (
+                                <div class="group flex items-baseline gap-2 animate-fade-in" style={`animation-delay: ${800 + i * 80}ms`}>
+                                    <span class="text-brand-300">"{f.key}"</span>
+                                    <span class="text-ink-500">:</span>
+                                    <span class={f.type === 'number' ? 'text-amber-300' : f.type === 'array' ? 'text-fuchsia-300' : 'text-emerald-300'}>{f.value}</span>
+                                    <span class="text-ink-500">,</span>
+                                    <span class="ml-auto rounded bg-white/5 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-ink-500 opacity-0 transition-opacity group-hover:opacity-100">{f.type}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div class="border-t border-white/5 px-4 py-2 text-ink-400">
+                            {'}'}
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-[11px] text-ink-500">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="size-3 text-emerald-400" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 6l3 3 5-7" />
+                            </svg>
+                            Validated against schema
+                        </span>
+                        <span class="font-mono">extracted in <span class="text-ink-200">1.42s</span></span>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- trusted by row -->
+    <div class="mx-auto mt-20 max-w-4xl text-center animate-fade-up [animation-delay:700ms]">
+        <p class="text-xs font-medium uppercase tracking-[0.2em] text-ink-500">
+            Trusted by teams building the future
+        </p>
+        <div class="mt-6 grid grid-cols-2 items-center gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
+            {['Linear', 'Vercel', 'Supabase', 'Notion', 'Stripe', 'Cloudflare'].map((logo) => (
+                <span class="text-center font-display text-base font-semibold tracking-tight text-ink-400 transition-colors hover:text-ink-200">
+                    {logo}
+                </span>
+            ))}
         </div>
     </div>
 </section>

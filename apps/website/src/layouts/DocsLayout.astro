@@ -17,20 +17,28 @@ const { title, description, section, page } = Astro.props
     title={`${title} — DocExtract API`}
     description={description ?? `${title} — DocExtract API reference and examples.`}
 >
-    <div class="mx-auto flex w-full max-w-7xl gap-10 px-4 pt-24 pb-20 lg:px-6">
-        <aside class="hidden w-60 shrink-0 lg:block">
-            <div class="sticky top-24">
-                <Sidebar activeSection={section} activePage={page} />
-            </div>
-        </aside>
+    {/*
+      Layout.astro now ships a dark mesh/grid theme for the marketing
+      surface; the docs intentionally render on a clean light surface for
+      readability. We blanket the viewport with an opaque white wrapper that
+      hides the dark body + fixed mesh background underneath.
+    */}
+    <div class="relative z-0 min-h-svh bg-white text-gray-900">
+        <div class="mx-auto flex w-full max-w-7xl gap-10 px-4 pt-24 pb-20 lg:px-6">
+            <aside class="hidden w-60 shrink-0 lg:block">
+                <div class="sticky top-24">
+                    <Sidebar activeSection={section} activePage={page} />
+                </div>
+            </aside>
 
-        <main class="min-w-0 flex-1">
-            <TokenInjector />
-            <article class="docs-prose">
-                <slot />
-            </article>
-            <slot name="footer" />
-        </main>
+            <main class="min-w-0 flex-1">
+                <TokenInjector />
+                <article class="docs-prose">
+                    <slot />
+                </article>
+                <slot name="footer" />
+            </main>
+        </div>
     </div>
 </Layout>
 
