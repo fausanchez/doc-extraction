@@ -181,7 +181,7 @@ export type Template = {
 
 export const templatesApi = {
     list: () => apiClient.get('templates').json<ApiResponse<Template[]>>(),
-    get: (id: number) => apiClient.get(`templates/${id}`).json<ApiResponse<Template>>(),
+    get: (id: number | string) => apiClient.get(`templates/${id}`).json<ApiResponse<Template>>(),
     create: (data: { name: string; description: string; schema: TemplateField[] }) =>
         apiClient.post('templates', { json: data }).json<ApiResponse<Template>>(),
     update: (id: number, data: { name: string; description: string; schema: TemplateField[] }) =>

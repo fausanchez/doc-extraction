@@ -20,5 +20,8 @@ export const route = {
         } catch {
             return { extractions: [], documents: [], templates: [] }
         }
+    },
+    handle: {
+        breadcrumb: [{ label: 'Extractions', to: urlExtractions() }]
     }
 }
