@@ -12,5 +12,8 @@ export const route = {
         } catch {
             return { documents: [] }
         }
+    },
+    handle: {
+        breadcrumb: [{ label: 'Documents', to: urlDocuments() }]
     }
 }

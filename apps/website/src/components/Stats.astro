@@ -1,0 +1,39 @@
+---
+const stats = [
+    { value: '~1.4s', label: 'avg extraction time', sub: 'Streaming results, edge inference' },
+    { value: '99.9%', label: 'extraction accuracy', sub: 'Validated against production schemas' },
+    { value: '10M+', label: 'docs processed', sub: 'Across invoices, IDs, contracts and forms' },
+    { value: '99.99%', label: 'uptime SLA', sub: 'Distributed on Cloudflare global edge' }
+]
+---
+
+<section id="stats" class="relative px-6 py-24">
+    <div class="mx-auto max-w-6xl">
+        <div class="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900/80 via-ink-900/60 to-ink-950/80 p-8 backdrop-blur sm:p-12">
+            <div aria-hidden="true" class="pointer-events-none absolute -right-32 -top-32 size-80 rounded-full bg-brand-500/20 blur-3xl"></div>
+            <div aria-hidden="true" class="pointer-events-none absolute -bottom-32 -left-32 size-80 rounded-full bg-fuchsia-500/20 blur-3xl"></div>
+
+            <div class="relative mx-auto max-w-2xl text-center">
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-ink-300">
+                    <span class="size-1.5 rounded-full bg-emerald-400"></span>
+                    Numbers that matter
+                </span>
+                <h2 class="mt-5 text-balance text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    Engineered for scale, optimized for accuracy
+                </h2>
+            </div>
+
+            <dl class="relative mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/10 lg:grid-cols-4">
+                {stats.map((s) => (
+                    <div class="bg-ink-950/80 p-6 text-center backdrop-blur sm:p-8">
+                        <dt class="font-mono text-4xl font-bold tracking-tight text-gradient-brand sm:text-5xl">
+                            {s.value}
+                        </dt>
+                        <dd class="mt-3 text-sm font-medium text-white">{s.label}</dd>
+                        <p class="mt-1 text-xs leading-relaxed text-ink-500">{s.sub}</p>
+                    </div>
+                ))}
+            </dl>
+        </div>
+    </div>
+</section>

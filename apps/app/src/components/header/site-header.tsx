@@ -1,4 +1,3 @@
-import { Button } from '@repo/ui/components/ui/button.tsx'
 import { SidebarTrigger } from '@repo/ui/components/ui/sidebar.tsx'
 import { Separator } from '@repo/ui/components/ui/separator.tsx'
 import {
@@ -8,34 +7,23 @@ import {
     BreadcrumbList,
     BreadcrumbSeparator
 } from '@repo/ui/components/ui/breadcrumb.tsx'
-import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar.tsx'
-import { Link, useLocation, useMatches, useNavigate } from 'react-router'
-import { useMemo } from 'react'
-import { useSetAtom, useAtomValue } from 'jotai'
-import { tokenAtom, userAtom } from '@/stores/auth'
-import { urlDashboard, urlLogin } from '@/urls'
+import { Button } from '@repo/ui/components/ui/button.tsx'
+import { Link, useLocation, useMatches } from 'react-router'
+import { useMemo, type ReactNode } from 'react'
+import { urlDashboard } from '@/urls'
 import { cn } from '@repo/ui/lib/utils.ts'
-import { LogOut, Home } from 'lucide-react'
+import { Home } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 type BreadcrumbItemType = { label: string; to: string; icon?: LucideIcon }
 type HandleData = {
     breadcrumb?: BreadcrumbItemType[] | ((data: Record<string, unknown>) => BreadcrumbItemType[])
+    actions?: ReactNode | ((data: Record<string, unknown>) => ReactNode)
 }
 
 export function SiteHeader() {
     const matches = useMatches()
     const location = useLocation()
-    const navigate = useNavigate()
-    const setToken = useSetAtom(tokenAtom)
-    const setUser = useSetAtom(userAtom)
-    const user = useAtomValue(userAtom)
-
-    const handleLogout = () => {
-        setToken(null)
-        setUser(null)
-        navigate(urlLogin(), { viewTransition: true })
-    }
 
     const loaderData = useMemo(() => {
         const data: Record<string, unknown> = {}
@@ -48,8 +36,8 @@ export function SiteHeader() {
     }, [matches])
 
     const handleData = matches.find((m) => {
-        return 'handle' in m && m.handle && typeof m.handle === 'object' && 'breadcrumb' in m.handle
-    })?.handle as HandleData
+        return 'handle' in m && m.handle && typeof m.handle === 'object'
+    })?.handle as HandleData | undefined
 
     const breadcrumbItems = useMemo(() => {
         const extra = handleData?.breadcrumb
@@ -60,47 +48,64 @@ export function SiteHeader() {
         return [{ label: 'Home', to: urlDashboard(), icon: Home }, ...extra]
     }, [handleData, loaderData])
 
+    const actions =
+        typeof handleData?.actions === 'function'
+            ? handleData.actions(loaderData)
+            : handleData?.actions
+
     return (
-        <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear">
-            <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex w-full items-center gap-1 px-3 lg:gap-2 lg:px-4">
                 <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
+                <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-4" />
+
                 <Breadcrumb>
-                    <BreadcrumbList>
+                    <BreadcrumbList className="text-[13px]">
                         {breadcrumbItems.map((item, index) => (
-                            <span key={item.to} className="contents">
+                            <span key={`${item.to}-${index}`} className="contents">
                                 <BreadcrumbItem
                                     className={cn(
-                                        'py-px px-1.5 rounded-md',
-                                        location.pathname === item.to && 'text-primary/80 bg-primary/10'
+                                        'rounded-md px-1.5 py-0.5 transition-colors',
+                                        location.pathname === item.to &&
+                                            'bg-muted text-foreground font-medium'
                                     )}
                                 >
                                     <BreadcrumbLink asChild>
-                                        <Link to={item.to} viewTransition className="flex items-center gap-1">
-                                            {item.icon && <item.icon className="size-3.5 text-muted-foreground" />}
-                                            {item.label}
+                                        <Link
+                                            to={item.to}
+                                            viewTransition
+                                            className="flex items-center gap-1.5"
+                                        >
+                                            {item.icon && (
+                                                <item.icon className="size-3.5 text-muted-foreground" />
+                                            )}
+                                            <span>{item.label}</span>
                                         </Link>
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
-                                {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
+                                {index < breadcrumbItems.length - 1 && (
+                                    <BreadcrumbSeparator className="text-muted-foreground/60" />
+                                )}
                             </span>
                         ))}
                     </BreadcrumbList>
                 </Breadcrumb>
             </div>
-            <div className="flex items-center gap-3 pr-4 lg:pr-6">
-                {user && (
-                    <div className="flex items-center gap-2">
-                        <Avatar size="sm">
-                            <AvatarImage src={user.avatar} alt={user.name} />
-                            <AvatarFallback>{user.name?.charAt(0).toUpperCase() ?? 'U'}</AvatarFallback>
-                        </Avatar>
-                        <span className="hidden text-sm font-medium lg:block">{user.name}</span>
-                    </div>
-                )}
-                <Button variant="ghost" size="icon-sm" onClick={handleLogout}>
-                    <LogOut className="size-4" />
+
+            <div className="flex items-center gap-1.5 pr-3 lg:pr-4">
+                {actions}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground sm:inline-flex"
+                >
+                    Feedback
                 </Button>
+                <Separator orientation="vertical" className="mx-1 hidden data-[orientation=vertical]:h-4 sm:block" />
+                <span className="hidden items-center gap-1 text-[11px] text-muted-foreground sm:inline-flex">
+                    <span className="kbd">⌘</span>
+                    <span className="kbd">K</span>
+                </span>
             </div>
         </header>
     )
