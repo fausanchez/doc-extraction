@@ -1,5 +1,6 @@
 import type { ExtractionProvider } from './types'
 import { anthropicProvider } from './providers/anthropic'
+import { openaiProvider } from './providers/openai'
 
 // Registry of every extraction provider that ships in this build. The orchestrator
 // looks up the provider whose id matches `env.EXTRACTION_PROVIDER` (default
@@ -11,7 +12,8 @@ import { anthropicProvider } from './providers/anthropic'
 //   3. Set `EXTRACTION_PROVIDER=<id>` in `wrangler.jsonc` (or `.dev.vars`),
 //      plus whatever credential env vars the provider needs.
 const providers: Record<string, ExtractionProvider> = {
-    anthropic: anthropicProvider
+    anthropic: anthropicProvider,
+    openai: openaiProvider
 }
 
 const DEFAULT_PROVIDER_ID = 'anthropic'
