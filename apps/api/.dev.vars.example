@@ -9,4 +9,10 @@ GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GITHUB_CLIENT_ID=your-github-client-id
 GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Extraction provider — optional, defaults to `anthropic`.
+# Add new ids to `apps/api/src/lib/extraction/registry.ts` to enable them.
+# EXTRACTION_PROVIDER=anthropic
+
+# Provider credentials. Only the active provider's keys need to be set.
 ANTHROPIC_API_KEY=sk-ant-...

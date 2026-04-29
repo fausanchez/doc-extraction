@@ -21,5 +21,14 @@ interface CloudflareBindings {
     GITHUB_CLIENT_ID: string
     GITHUB_CLIENT_SECRET: string
     APP_URL: string
+
+    // Extraction provider selector. Optional — defaults to `'anthropic'`
+    // when unset. See `src/lib/extraction/registry.ts` for the registered
+    // ids.
+    EXTRACTION_PROVIDER?: string
+
+    // Provider-specific credentials. Only the active provider needs its
+    // credentials present at request time; the registry's `isConfigured`
+    // check fails-fast on misconfiguration.
     ANTHROPIC_API_KEY: string
 }
