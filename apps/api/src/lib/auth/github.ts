@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/d1'
 import { users } from '@/db/schema'
 import { HTTPException } from 'hono/http-exception'
+import { getDefaultProduct } from '@/lib/products'
 
 type GitHubUser = {
     id: number
@@ -89,6 +90,9 @@ export async function upsertGitHubUser(
         return user!
     }
 
+    // First-time signup: pin the user to the catalogue's default product (Free).
+    const defaultProduct = await getDefaultProduct(db)
+
     const [user] = await db
         .insert(users)
         .values({
@@ -96,7 +100,8 @@ export async function upsertGitHubUser(
             name: ghUser.name ?? ghUser.login,
             avatar: ghUser.avatar_url,
             provider: 'github',
-            providerId: String(ghUser.id)
+            providerId: String(ghUser.id),
+            productId: defaultProduct?.id ?? null
         })
         .returning()
     return user!

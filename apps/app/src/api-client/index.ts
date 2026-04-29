@@ -194,9 +194,85 @@ export type Extraction = {
     createdAt: number
 }
 
+// Quota-exceeded response from POST /extractions (HTTP 402). Surfaced as a
+// plain `error: true` value so callers can branch without a try/catch on the
+// HTTP layer.
+export type QuotaExceeded = {
+    data: null
+    error: true
+    message: string
+    usage: Usage
+    product: { slug: string; name: string }
+}
+
+export type StartExtractionResponse = ApiResponse<Extraction> | QuotaExceeded
+
 export const extractionsApi = {
     list: () => apiClient.get('extractions').json<ApiResponse<Extraction[]>>(),
     get: (id: number) => apiClient.get(`extractions/${id}`).json<ApiResponse<Extraction>>(),
     start: (documentId: number, templateId: number) =>
-        apiClient.post('extractions', { json: { documentId, templateId } }).json<ApiResponse<Extraction>>()
+        apiClient
+            .post('extractions', {
+                json: { documentId, templateId },
+                // 402 (quota) returns a structured body — let the caller inspect
+                // it instead of throwing on a non-2xx.
+                throwHttpErrors: false
+            })
+            .json<StartExtractionResponse>()
+}
+
+// Products + Prices (catalogue)
+export type Price = {
+    id: number
+    productId: number
+    amount: number
+    currency: string
+    interval: 'month' | 'year' | 'one_time' | 'free'
+    intervalCount: number
+    providerPriceId: string
+    status: string
+    createdAt: number
+}
+
+export type Product = {
+    id: number
+    slug: string
+    name: string
+    description: string
+    monthlyExtractionCredits: number | null
+    sortOrder: number
+    isDefault: boolean
+    status: string
+    createdAt: number
+    prices: Price[]
+}
+
+export const productsApi = {
+    list: () => apiClient.get('products').json<ApiResponse<Product[]>>(),
+    get: (slug: string) => apiClient.get(`products/${slug}`).json<ApiResponse<Product>>()
+}
+
+// Account / usage
+export type Usage = {
+    creditsUsed: number
+    creditsLimit: number | null
+    periodStart: string
+    periodEnd: string
+    percentUsed: number | null
+    remaining: number | null
+}
+
+export type UsageResponse = {
+    product: {
+        id: number
+        slug: string
+        name: string
+        description: string
+        monthlyExtractionCredits: number | null
+    }
+    usage: Usage
+}
+
+export const meApi = {
+    usage: () => apiClient.get('me/usage').json<ApiResponse<UsageResponse>>()
 }

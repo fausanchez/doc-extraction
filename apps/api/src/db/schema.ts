@@ -1,6 +1,55 @@
 import { sql } from 'drizzle-orm'
 import { sqliteTable, integer, text, index } from 'drizzle-orm/sqlite-core'
 
+// Catalogue of access tiers. Each product encodes the limits a user gets;
+// for now the only enforced limit is `monthlyExtractionCredits` (NULL means
+// unlimited). One row is flagged `isDefault = 1` and assigned to every new
+// signup.
+export const products = sqliteTable('products', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    // Stable handle for code lookups (e.g. 'free', 'pro', 'enterprise').
+    slug: text('slug').notNull().unique(),
+    name: text('name').notNull(),
+    description: text('description').notNull().default(''),
+    // NULL = unlimited extractions per rolling 30-day window.
+    monthlyExtractionCredits: integer('monthly_extraction_credits'),
+    // Lower values render first in pricing UIs.
+    sortOrder: integer('sort_order').notNull().default(0),
+    isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+    status: text('status').notNull().default('active'), // active | archived
+    createdAt: integer('created_at').notNull().default(sql`(unixepoch() * 1000)`),
+    updatedAt: integer('updated_at')
+        .notNull()
+        .default(sql`(unixepoch() * 1000)`)
+        .$onUpdate(() => sql`(unixepoch() * 1000)`)
+})
+
+// A way to pay for a product. `interval = 'free'` represents the no-cost
+// path; paid intervals (`month`, `year`, `one_time`) carry an `amount` in
+// minor currency units (cents). `providerPriceId` slots a Stripe / vendor
+// reference for when checkout is wired up.
+export const prices = sqliteTable(
+    'prices',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        productId: integer('product_id')
+            .references(() => products.id)
+            .notNull(),
+        amount: integer('amount').notNull().default(0), // minor units
+        currency: text('currency').notNull().default('USD'),
+        interval: text('interval').notNull(), // month | year | one_time | free
+        intervalCount: integer('interval_count').notNull().default(1),
+        providerPriceId: text('provider_price_id').notNull().default(''),
+        status: text('status').notNull().default('active'),
+        createdAt: integer('created_at').notNull().default(sql`(unixepoch() * 1000)`),
+        updatedAt: integer('updated_at')
+            .notNull()
+            .default(sql`(unixepoch() * 1000)`)
+            .$onUpdate(() => sql`(unixepoch() * 1000)`)
+    },
+    (t) => [index('prices_product_id_idx').on(t.productId)]
+)
+
 export const users = sqliteTable('users', {
     id: integer('id').primaryKey({ autoIncrement: true }),
     email: text('email').notNull().unique(),
@@ -9,6 +58,12 @@ export const users = sqliteTable('users', {
     provider: text('provider').notNull().default('google'), // google | github
     providerId: text('provider_id').notNull().default(''),
     role: text('role').notNull().default('user'),
+    // Active product. Nullable in the schema because SQLite's ALTER ADD
+    // COLUMN can't introduce a NOT NULL FK without a default; the migration
+    // backfills every existing row to the Free product and `upsertGoogle/
+    // GitHubUser` always sets it on insert. Reads should still tolerate
+    // NULL by falling back to the default product.
+    productId: integer('product_id').references(() => products.id),
     createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updated_at')
         .notNull()

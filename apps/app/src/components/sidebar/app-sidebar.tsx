@@ -28,6 +28,7 @@ import {
     LayoutDashboard,
     User,
     ChevronsUpDown,
+    CreditCard,
     LogOut,
     Search,
     Settings,
@@ -43,6 +44,7 @@ import {
     urlTemplates,
     urlExtractions,
     urlProfile,
+    urlBilling,
     urlLogin
 } from '@/urls'
 
@@ -53,7 +55,10 @@ const workspaceItems = [
     { title: 'Extractions', url: urlExtractions(), icon: Cpu, kbd: 'E' }
 ]
 
-const accountItems = [{ title: 'Profile', url: urlProfile(), icon: User }]
+const accountItems = [
+    { title: 'Billing', url: urlBilling(), icon: CreditCard },
+    { title: 'Profile', url: urlProfile(), icon: User }
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const user = useAtomValue(userAtom)

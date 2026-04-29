@@ -9,3 +9,4 @@ export const urlTemplate = (id: string | number) => `/templates/${id}`
 export const urlExtractions = () => `/extractions`
 export const urlExtraction = (id: string | number) => `/extractions/${id}`
 export const urlProfile = () => `/profile`
+export const urlBilling = () => `/billing`
