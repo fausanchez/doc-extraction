@@ -308,3 +308,9 @@ export const apiTokensApi = {
     usage: (id: number) =>
         apiClient.get(`api-tokens/${id}/usage`).json<ApiResponse<ApiTokenUsage>>()
 }
+
+// Feedback
+export const feedbackApi = {
+    send: (data: { message: string; category: 'bug' | 'feature' | 'general' }) =>
+        apiClient.post('feedback', { json: data }).json<ApiResponse<null>>()
+}
