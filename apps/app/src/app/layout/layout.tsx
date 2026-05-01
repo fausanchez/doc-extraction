@@ -6,8 +6,11 @@ import { AppSidebar } from '@/components/sidebar/app-sidebar'
 import { Outlet } from 'react-router'
 import { SiteHeader } from '@/components/header/site-header'
 import { Toaster } from 'sonner'
+import { useTheme } from '@/hooks/use-theme'
 
 export function Layout() {
+    const { theme } = useTheme()
+
     return (
         <>
             <SidebarProvider
@@ -26,7 +29,7 @@ export function Layout() {
                     </main>
                 </SidebarInset>
             </SidebarProvider>
-            <Toaster />
+            <Toaster theme={theme} />
         </>
     )
 }
