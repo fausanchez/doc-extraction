@@ -3,7 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DocExtract</title>
+    <title>dvop.io</title>
+    <!-- Apply theme before first paint to prevent flash of unstyled content. -->
+    <script>
+      (function () {
+        var t = localStorage.getItem('dvop-theme')
+        var dark =
+          t === 'dark' ||
+          ((t === 'system' || !t) && matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark) document.documentElement.classList.add('dark')
+      })()
+    </script>
     <script src="https://accounts.google.com/gsi/client" async></script>
   </head>
   <body>

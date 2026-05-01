@@ -14,6 +14,7 @@ import { urlDashboard } from '@/urls'
 import { cn } from '@repo/ui/lib/utils.ts'
 import { Home } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 type BreadcrumbItemType = { label: string; to: string; icon?: LucideIcon }
 type HandleData = {
@@ -101,6 +102,7 @@ export function SiteHeader() {
                 >
                     Feedback
                 </Button>
+                <ThemeToggle />
                 <Separator orientation="vertical" className="mx-1 hidden data-[orientation=vertical]:h-4 sm:block" />
                 <span className="hidden items-center gap-1 text-[11px] text-muted-foreground sm:inline-flex">
                     <span className="kbd">⌘</span>
