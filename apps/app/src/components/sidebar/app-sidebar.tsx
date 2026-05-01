@@ -54,13 +54,11 @@ const workspaceItems = [
     { title: 'Dashboard', url: urlDashboard(), icon: LayoutDashboard, kbd: 'D' },
     { title: 'Templates', url: urlTemplates(), icon: LayoutTemplate, kbd: 'T' },
     { title: 'Documents', url: urlDocuments(), icon: FileText, kbd: 'F' },
-    { title: 'Extractions', url: urlExtractions(), icon: Cpu, kbd: 'E' },
-    { title: 'API tokens', url: urlApiTokens(), icon: KeyRound, kbd: 'A' }
+    { title: 'Extractions', url: urlExtractions(), icon: Cpu, kbd: 'E' }
 ]
 
-const accountItems = [
-    { title: 'Billing', url: urlBilling(), icon: CreditCard },
-    { title: 'Profile', url: urlProfile(), icon: User }
+const developerItems = [
+    { title: 'API tokens', url: urlApiTokens(), icon: KeyRound, kbd: 'A' }
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -125,7 +123,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
             <SidebarContent>
                 <NavMain label="Workspace" items={workspaceItems} />
-                <NavMain label="Account" items={accountItems} />
+                <NavMain label="Developer" items={developerItems} />
 
                 <SidebarGroup className="mt-auto">
                     <SidebarGroupContent>
@@ -190,6 +188,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     <Link to={urlProfile()} viewTransition>
                                         <User />
                                         Profile
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link to={urlBilling()} viewTransition>
+                                        <CreditCard />
+                                        Billing
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem disabled>
