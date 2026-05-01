@@ -7,25 +7,13 @@ import { Outlet } from 'react-router'
 import { SiteHeader } from '@/components/header/site-header'
 import { Toaster } from 'sonner'
 import { useTheme } from '@/hooks/use-theme'
-import { useSetAtom } from 'jotai'
-import { useEffect } from 'react'
-import { commandPaletteOpenAtom } from '@/stores/command-palette'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { CommandPalette } from '@/components/command-palette'
+import { ShortcutsModal } from '@/components/shortcuts-modal'
 
 export function Layout() {
     const { theme } = useTheme()
-    const setOpen = useSetAtom(commandPaletteOpenAtom)
-
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault()
-                setOpen((v) => !v)
-            }
-        }
-        window.addEventListener('keydown', handler)
-        return () => window.removeEventListener('keydown', handler)
-    }, [setOpen])
+    useKeyboardShortcuts()
 
     return (
         <>
@@ -46,6 +34,7 @@ export function Layout() {
                 </SidebarInset>
             </SidebarProvider>
             <CommandPalette />
+            <ShortcutsModal />
             <Toaster theme={theme} />
         </>
     )
