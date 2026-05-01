@@ -3,7 +3,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro'
 import CodeTabs from '../../components/docs/CodeTabs.astro'
 
 const extractCurl = `curl -X POST https://api.dvop.io/v1/extract \\
-  -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE" \\
+  -H "Authorization: Bearer dvop_live_YOUR_TOKEN_HERE" \\
   -F "file=@invoice.pdf" \\
   -F "template_id=42"`
 
@@ -13,7 +13,7 @@ form.append('template_id', '42')
 
 const res = await fetch('https://api.dvop.io/v1/extract', {
     method: 'POST',
-    headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' },
+    headers: { Authorization: 'Bearer dvop_live_YOUR_TOKEN_HERE' },
     body: form
 })
 
@@ -25,7 +25,7 @@ const extractPython = `import requests
 with open('invoice.pdf', 'rb') as f:
     res = requests.post(
         'https://api.dvop.io/v1/extract',
-        headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
+        headers={'Authorization': 'Bearer dvop_live_YOUR_TOKEN_HERE'},
         files={'file': f},
         data={'template_id': 42},
     )
@@ -57,7 +57,7 @@ func main() {
     w.Close()
 
     req, _ := http.NewRequest("POST", "https://api.dvop.io/v1/extract", &body)
-    req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
+    req.Header.Set("Authorization", "Bearer dvop_live_YOUR_TOKEN_HERE")
     req.Header.Set("Content-Type", w.FormDataContentType())
 
     res, _ := http.DefaultClient.Do(req)
@@ -75,7 +75,7 @@ require 'json'
 
 uri = URI('https://api.dvop.io/v1/extract')
 req = Net::HTTP::Post.new(uri)
-req['Authorization'] = 'Bearer dx_live_YOUR_TOKEN_HERE'
+req['Authorization'] = 'Bearer dvop_live_YOUR_TOKEN_HERE'
 
 form = [
   ['file', File.open('invoice.pdf')],
@@ -87,11 +87,11 @@ res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |http| http.request(r
 puts JSON.parse(res.body)['data']['extractionId']`
 
 const pollCurl = `curl https://api.dvop.io/v1/extractions/123 \\
-  -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE"`
+  -H "Authorization: Bearer dvop_live_YOUR_TOKEN_HERE"`
 
 const pollJs = `const res = await fetch(
     'https://api.dvop.io/v1/extractions/123',
-    { headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' } }
+    { headers: { Authorization: 'Bearer dvop_live_YOUR_TOKEN_HERE' } }
 )
 const { data } = await res.json()
 
@@ -103,7 +103,7 @@ const pollPython = `import requests
 
 res = requests.get(
     'https://api.dvop.io/v1/extractions/123',
-    headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
+    headers={'Authorization': 'Bearer dvop_live_YOUR_TOKEN_HERE'},
 )
 data = res.json()['data']
 
@@ -112,7 +112,7 @@ if data['status'] == 'done':
 
 const pollGo = `req, _ := http.NewRequest("GET",
     "https://api.dvop.io/v1/extractions/123", nil)
-req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
+req.Header.Set("Authorization", "Bearer dvop_live_YOUR_TOKEN_HERE")
 res, _ := http.DefaultClient.Do(req)
 // decode res.Body and read data.status / data.result`
 
@@ -121,7 +121,7 @@ require 'json'
 
 uri = URI('https://api.dvop.io/v1/extractions/123')
 res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
-  http.get(uri.path, 'Authorization' => 'Bearer dx_live_YOUR_TOKEN_HERE')
+  http.get(uri.path, 'Authorization' => 'Bearer dvop_live_YOUR_TOKEN_HERE')
 end
 puts JSON.parse(res.body)['data']`
 ---
@@ -133,7 +133,7 @@ puts JSON.parse(res.body)['data']`
     <h2>1. Get an API token</h2>
     <p>
         API tokens are managed from the dashboard. They start with
-        <code>dx_live_</code> and are shown once at creation — store yours in
+        <code>dvop_live_</code> and are shown once at creation — store yours in
         a secret manager.
     </p>
     <p>

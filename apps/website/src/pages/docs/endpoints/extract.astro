@@ -50,7 +50,7 @@ const responseParams = [
 ]
 
 const sCurl = `curl -X POST https://api.dvop.io/v1/extract \\
-  -H "Authorization: Bearer dx_live_YOUR_TOKEN_HERE" \\
+  -H "Authorization: Bearer dvop_live_YOUR_TOKEN_HERE" \\
   -F "file=@invoice.pdf" \\
   -F "template_id=42"`
 
@@ -60,7 +60,7 @@ form.append('template_id', '42')
 
 const res = await fetch('https://api.dvop.io/v1/extract', {
     method: 'POST',
-    headers: { Authorization: 'Bearer dx_live_YOUR_TOKEN_HERE' },
+    headers: { Authorization: 'Bearer dvop_live_YOUR_TOKEN_HERE' },
     body: form
 })
 
@@ -75,7 +75,7 @@ const sPython = `import requests
 with open('invoice.pdf', 'rb') as f:
     res = requests.post(
         'https://api.dvop.io/v1/extract',
-        headers={'Authorization': 'Bearer dx_live_YOUR_TOKEN_HERE'},
+        headers={'Authorization': 'Bearer dvop_live_YOUR_TOKEN_HERE'},
         files={'file': ('invoice.pdf', f, 'application/pdf')},
         data={'template_id': 42},
         timeout=30,
@@ -109,7 +109,7 @@ func main() {
 
     req, _ := http.NewRequest("POST",
         "https://api.dvop.io/v1/extract", &body)
-    req.Header.Set("Authorization", "Bearer dx_live_YOUR_TOKEN_HERE")
+    req.Header.Set("Authorization", "Bearer dvop_live_YOUR_TOKEN_HERE")
     req.Header.Set("Content-Type", w.FormDataContentType())
 
     res, _ := http.DefaultClient.Do(req)
@@ -129,7 +129,7 @@ require 'json'
 
 uri = URI('https://api.dvop.io/v1/extract')
 req = Net::HTTP::Post.new(uri)
-req['Authorization'] = 'Bearer dx_live_YOUR_TOKEN_HERE'
+req['Authorization'] = 'Bearer dvop_live_YOUR_TOKEN_HERE'
 
 req.set_form(
   [['file', File.open('invoice.pdf')], ['template_id', '42']],

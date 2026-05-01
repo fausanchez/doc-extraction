@@ -13,7 +13,7 @@ import { processExtraction } from '@/lib/extraction'
 import { assertExtractionAllowed } from '@/lib/products'
 
 // Public programmatic surface. Authenticates with `Authorization: Bearer
-// dx_live_…` (an API token issued from the dashboard). Same per-user
+// dvop_live_…` (an API token issued from the dashboard). Same per-user
 // extraction rate limit and credit gate as the dashboard, so an API user
 // can't sidestep their plan limit.
 const router = new Hono<{

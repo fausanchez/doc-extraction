@@ -21,7 +21,7 @@
         <div class="flex items-center gap-2">
             <input
                 type="text"
-                placeholder="dx_live_..."
+                placeholder="dvop_live_..."
                 spellcheck="false"
                 autocomplete="off"
                 data-token-input
@@ -40,9 +40,9 @@
 
 <script>
     const STORAGE_KEY = 'docs_api_token'
-    const PLACEHOLDER = 'dx_live_YOUR_TOKEN_HERE'
+    const PLACEHOLDER = 'dvop_live_YOUR_TOKEN_HERE'
     // Validate before persisting so a typo doesn't masquerade as a real token.
-    const TOKEN_RE = /^dx_live_[a-f0-9]{32}$/i
+    const TOKEN_RE = /^dvop_live_[a-f0-9]{32}$/i
 
     function read(): string | null {
         try {

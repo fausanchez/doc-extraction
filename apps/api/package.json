@@ -9,7 +9,9 @@
         "db:migrate": "wrangler d1 migrations apply dvop-io-develop --local",
         "db:migrate:develop": "wrangler d1 migrations apply dvop-io-develop --env develop --remote",
         "db:migrate:production": "wrangler d1 migrations apply dvop-io-production --env production --remote",
-        "db:generate": "drizzle-kit generate"
+        "db:generate": "drizzle-kit generate",
+        "db:reset-tokens": "wrangler d1 execute dvop-io-develop --local --file=../../scripts/reset-api-tokens.sql",
+        "db:reset-tokens:develop": "wrangler d1 execute dvop-io-develop --env develop --remote --file=../../scripts/reset-api-tokens.sql"
     },
     "dependencies": {
         "@hono/zod-validator": "^0.7.6",
