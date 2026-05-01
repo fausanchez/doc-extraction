@@ -1,4 +1,6 @@
 import * as React from 'react'
+import { useSetAtom } from 'jotai'
+import { commandPaletteOpenAtom } from '@/stores/command-palette'
 import { NavMain } from '@/components/sidebar/nav-main.tsx'
 import {
     Sidebar,
@@ -66,6 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const setToken = useSetAtom(tokenAtom)
     const setUser = useSetAtom(userAtom)
     const navigate = useNavigate()
+    const openPalette = useSetAtom(commandPaletteOpenAtom)
 
     const handleLogout = async () => {
         // Best-effort server-side revocation; the refresh token rides in an
@@ -110,9 +113,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenuItem>
                 </SidebarMenu>
 
-                {/* search trigger (visual only — could open a Cmd+K palette) */}
                 <button
                     type="button"
+                    onClick={() => openPalette(true)}
                     className="mt-2 flex h-8 w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 px-2.5 text-xs text-muted-foreground hover:bg-sidebar-accent transition-colors"
                 >
                     <Search className="size-3.5" />
