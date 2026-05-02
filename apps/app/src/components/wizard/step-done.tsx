@@ -24,7 +24,7 @@ export function StepDone({
                     <h2 className="text-xl font-bold tracking-tight">You're all set!</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                         {extraction
-                            ? 'Your first extraction is complete. Here's the structured data:'
+                            ? "Your first extraction is complete. Here's the structured data:"
                             : 'You now know how dvop.io works. Go explore the dashboard!'}
                     </p>
                 </div>
