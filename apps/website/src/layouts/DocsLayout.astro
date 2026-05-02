@@ -23,7 +23,7 @@ const { title, description, section, page } = Astro.props
       docs render on a clean light surface. The opaque white wrapper hides
       the dark body + fixed mesh background underneath.
     */}
-    <div class="relative z-0 min-h-svh bg-white text-gray-900">
+    <div class="relative z-0 min-h-svh bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">
         <DocsHeader activeSection={section} activePage={page} />
 
         <div class="mx-auto flex w-full max-w-7xl gap-10 px-4 py-10 lg:px-6">
@@ -132,4 +132,22 @@ const { title, description, section, page } = Astro.props
     .docs-prose strong {
         color: #0f172a;
     }
+
+    :where(.dark) .docs-prose { color: #d1d5db; }
+    :where(.dark) .docs-prose h1 { color: #f9fafb; }
+    :where(.dark) .docs-prose h1 + p.lede { color: #9ca3af; }
+    :where(.dark) .docs-prose h2 { color: #f9fafb; }
+    :where(.dark) .docs-prose h3 { color: #f9fafb; }
+    :where(.dark) .docs-prose p,
+    :where(.dark) .docs-prose li { color: #d1d5db; }
+    :where(.dark) .docs-prose a { color: #818cf8; }
+    :where(.dark) .docs-prose a:hover { color: #a5b4fc; }
+    :where(.dark) .docs-prose ul li::marker { color: #6b7280; }
+    :where(.dark) .docs-prose code {
+        background: #1f2937;
+        border-color: #374151;
+        color: #e5e7eb;
+    }
+    :where(.dark) .docs-prose hr { border-color: #374151; }
+    :where(.dark) .docs-prose strong { color: #f9fafb; }
 </style>

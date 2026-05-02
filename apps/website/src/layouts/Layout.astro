@@ -26,6 +26,15 @@ const {
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <title>{title}</title>
+        <script is:inline>
+            (function () {
+                try {
+                    var s = localStorage.getItem('docs-theme')
+                    var p = window.matchMedia('(prefers-color-scheme: dark)').matches
+                    if (s === 'dark' || (!s && p)) document.documentElement.classList.add('dark')
+                } catch (_) {}
+            })()
+        </script>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
