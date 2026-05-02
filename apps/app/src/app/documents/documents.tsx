@@ -21,8 +21,11 @@ import {
 import { useRef, useState } from 'react'
 import { documentsApi, type Document } from '@/api-client'
 import { EmptyState } from '@/components/empty-state'
+import { Pagination, paginate } from '@/components/pagination'
 import { toast } from 'sonner'
 import type { route } from './route'
+
+const PAGE_SIZE = 25
 
 function statusVariant(status: string) {
     if (status === 'done') return 'default'
@@ -62,6 +65,8 @@ export function Documents() {
     const { revalidate } = useRevalidator()
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [uploading, setUploading] = useState(false)
+    const [page, setPage] = useState(1)
+    const paged = paginate(documents, page, PAGE_SIZE)
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -148,7 +153,7 @@ export function Documents() {
                 />
             ) : (
                 <div className="row-list">
-                    {documents.map((doc) => (
+                    {paged.map((doc) => (
                         <div
                             key={doc.id}
                             className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50"
@@ -190,6 +195,12 @@ export function Documents() {
                         </div>
                     ))}
                 </div>
+                <Pagination
+                    page={page}
+                    pageSize={PAGE_SIZE}
+                    total={documents.length}
+                    onPage={setPage}
+                />
             )}
         </div>
     )

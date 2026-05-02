@@ -19,8 +19,11 @@ import {
 import { useEffect, useState } from 'react'
 import { type Extraction } from '@/api-client'
 import { EmptyState } from '@/components/empty-state'
+import { Pagination, paginate } from '@/components/pagination'
 import { urlTemplate, urlTemplates } from '@/urls'
 import type { route } from './route'
+
+const PAGE_SIZE = 25
 
 function statusVariant(status: string) {
     if (status === 'done') return 'default'
@@ -41,6 +44,8 @@ export function Extractions() {
     const { extractions, documents, templates } = useLoaderData<typeof route.loader>()
     const { revalidate } = useRevalidator()
     const [selected, setSelected] = useState<Extraction | null>(null)
+    const [page, setPage] = useState(1)
+    const paged = paginate(extractions, page, PAGE_SIZE)
 
     // Auto-refresh while jobs are in flight
     useEffect(() => {
@@ -90,7 +95,7 @@ export function Extractions() {
                 />
             ) : (
                 <div className="row-list">
-                    {extractions.map((ext) => {
+                    {paged.map((ext) => {
                         const doc = documents.find((d) => d.id === ext.documentId)
                         const tmpl = templates.find((t) => t.id === ext.templateId)
                         return (
@@ -133,6 +138,12 @@ export function Extractions() {
                         )
                     })}
                 </div>
+                <Pagination
+                    page={page}
+                    pageSize={PAGE_SIZE}
+                    total={extractions.length}
+                    onPage={setPage}
+                />
             )}
 
             <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
