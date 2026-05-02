@@ -51,6 +51,7 @@ import {
     urlProfile,
     urlBilling,
     urlApiTokens,
+    urlSettings,
     urlLogin
 } from '@/urls'
 
@@ -210,10 +211,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         Billing
                                     </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem disabled>
-                                    <Settings />
-                                    Settings
-                                    <DropdownMenuShortcut>⌘,</DropdownMenuShortcut>
+                                <DropdownMenuItem asChild>
+                                    <Link to={urlSettings()} viewTransition>
+                                        <Settings />
+                                        Settings
+                                        <DropdownMenuShortcut>⌘,</DropdownMenuShortcut>
+                                    </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onSelect={openWizard}>
                                     <BookOpen />
