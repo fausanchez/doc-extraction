@@ -152,7 +152,8 @@ export function Documents() {
                     }
                 />
             ) : (
-                <div className="row-list">
+                <>
+                    <div className="row-list">
                     {paged.map((doc) => (
                         <div
                             key={doc.id}
@@ -194,13 +195,14 @@ export function Documents() {
                             </DropdownMenu>
                         </div>
                     ))}
-                </div>
-                <Pagination
-                    page={page}
-                    pageSize={PAGE_SIZE}
-                    total={documents.length}
-                    onPage={setPage}
-                />
+                    </div>
+                    <Pagination
+                        page={page}
+                        pageSize={PAGE_SIZE}
+                        total={documents.length}
+                        onPage={setPage}
+                    />
+                </>
             )}
         </div>
     )

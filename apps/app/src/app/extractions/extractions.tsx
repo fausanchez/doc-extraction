@@ -94,7 +94,8 @@ export function Extractions() {
                     }
                 />
             ) : (
-                <div className="row-list">
+                <>
+                    <div className="row-list">
                     {paged.map((ext) => {
                         const doc = documents.find((d) => d.id === ext.documentId)
                         const tmpl = templates.find((t) => t.id === ext.templateId)
@@ -137,13 +138,14 @@ export function Extractions() {
                             </button>
                         )
                     })}
-                </div>
-                <Pagination
-                    page={page}
-                    pageSize={PAGE_SIZE}
-                    total={extractions.length}
-                    onPage={setPage}
-                />
+                    </div>
+                    <Pagination
+                        page={page}
+                        pageSize={PAGE_SIZE}
+                        total={extractions.length}
+                        onPage={setPage}
+                    />
+                </>
             )}
 
             <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>

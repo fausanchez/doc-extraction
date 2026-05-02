@@ -20,10 +20,10 @@ export function ErrorBoundary({ inline = false }: ErrorBoundaryProps) {
         status = error.status
         if (error.status === 404) {
             title = 'Page not found'
-            message = 'The page you're looking for doesn't exist or has been moved.'
+            message = "The page you're looking for doesn't exist or has been moved."
         } else if (error.status === 401 || error.status === 403) {
             title = 'Access denied'
-            message = 'You don't have permission to view this page.'
+            message = "You don't have permission to view this page."
         } else if (error.status >= 500) {
             title = 'Server error'
             message = 'Something went wrong on our end. Please try again in a moment.'
