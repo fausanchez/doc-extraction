@@ -33,10 +33,10 @@ const sections = [
 ]
 
 const methodColor = (m?: string) => {
-    if (m === 'GET') return 'text-blue-600'
-    if (m === 'POST') return 'text-green-600'
-    if (m === 'DELETE') return 'text-red-600'
-    return 'text-gray-500'
+    if (m === 'GET') return 'text-blue-600 dark:text-blue-400'
+    if (m === 'POST') return 'text-green-600 dark:text-green-400'
+    if (m === 'DELETE') return 'text-red-600 dark:text-red-400'
+    return 'text-gray-500 dark:text-gray-400'
 }
 ---
 
@@ -58,8 +58,8 @@ const methodColor = (m?: string) => {
                                     class:list={[
                                         'flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors',
                                         isActive
-                                            ? 'bg-gray-900 text-white'
-                                            : 'text-gray-700 hover:bg-gray-100'
+                                            ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
                                     ]}
                                 >
                                     {'method' in item && item.method && (
@@ -84,14 +84,14 @@ const methodColor = (m?: string) => {
         ))
     }
 
-    <div class="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-3">
-        <p class="text-xs font-medium text-gray-900">Need a token?</p>
-        <p class="mt-1 text-xs text-gray-500">
+    <div class="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900">
+        <p class="text-xs font-medium text-gray-900 dark:text-gray-100">Need a token?</p>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
             Manage API tokens in the dashboard.
         </p>
         <a
             href="https://app.dvop.io/api-tokens"
-            class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-gray-900 hover:underline"
+            class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-gray-900 hover:underline dark:text-gray-100"
         >
             Open dashboard →
         </a>

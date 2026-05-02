@@ -34,38 +34,57 @@ const sections = [
 ]
 
 const methodColor = (m?: string) => {
-    if (m === 'GET') return 'text-blue-600'
-    if (m === 'POST') return 'text-green-600'
-    return 'text-gray-500'
+    if (m === 'GET') return 'text-blue-600 dark:text-blue-400'
+    if (m === 'POST') return 'text-green-600 dark:text-green-400'
+    return 'text-gray-500 dark:text-gray-400'
 }
 ---
 
-<header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
+<header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/95">
     <div class="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 lg:px-6">
         <!-- Logo + breadcrumb -->
         <a href="/" class="flex shrink-0 items-center gap-2">
             <span class="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 via-violet-500 to-fuchsia-500 text-xs font-bold text-white shadow-sm">
                 D
             </span>
-            <span class="text-sm font-semibold text-gray-900">dvop.io</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white">dvop.io</span>
         </a>
-        <span class="text-gray-300 select-none">/</span>
-        <span class="text-sm font-medium text-gray-500">Docs</span>
+        <span class="select-none text-gray-300 dark:text-gray-600">/</span>
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Docs</span>
 
         <div class="flex-1"></div>
 
-        <!-- Desktop: home link + CTA -->
+        <!-- Desktop: home link + theme toggle + CTA -->
         <nav class="hidden items-center gap-1 md:flex">
             <a
                 href="/"
-                class="rounded-md px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                class="rounded-md px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
             >
                 Home
             </a>
         </nav>
+
+        <!-- Theme toggle -->
+        <button
+            id="docs-theme-toggle"
+            type="button"
+            aria-label="Toggle dark mode"
+            class="flex items-center justify-center rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+        >
+            <!-- Sun — shown in dark mode -->
+            <svg class="hidden size-4 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+            </svg>
+            <!-- Moon — shown in light mode -->
+            <svg class="size-4 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+
         <a
             href={APP_URL}
-            class="inline-flex h-8 items-center rounded-lg bg-gray-900 px-3 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+            class="inline-flex h-8 items-center rounded-lg bg-gray-900 px-3 text-sm font-medium text-white transition-colors hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
         >
             Open app
         </a>
@@ -76,7 +95,7 @@ const methodColor = (m?: string) => {
             type="button"
             aria-label="Open navigation"
             aria-expanded="false"
-            class="ml-1 flex items-center justify-center rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 lg:hidden"
+            class="ml-1 flex items-center justify-center rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 lg:hidden dark:text-gray-400 dark:hover:bg-gray-800"
         >
             <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 6h18M3 12h18M3 18h18" />
@@ -90,15 +109,15 @@ const methodColor = (m?: string) => {
     <!-- Backdrop -->
     <div id="docs-nav-backdrop" class="absolute inset-0 bg-black/40"></div>
     <!-- Panel -->
-    <nav class="absolute left-0 top-0 flex h-full w-72 flex-col overflow-y-auto bg-white px-4 py-6 shadow-xl">
+    <nav class="absolute left-0 top-0 flex h-full w-72 flex-col overflow-y-auto bg-white px-4 py-6 shadow-xl dark:bg-gray-950">
         <div class="mb-6 flex items-center justify-between">
             <a href="/" class="flex items-center gap-2">
                 <span class="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 via-violet-500 to-fuchsia-500 text-xs font-bold text-white">
                     D
                 </span>
-                <span class="text-sm font-semibold text-gray-900">dvop.io</span>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">dvop.io</span>
             </a>
-            <button id="docs-nav-close" type="button" aria-label="Close navigation" class="rounded-md p-1 text-gray-500 hover:bg-gray-100">
+            <button id="docs-nav-close" type="button" aria-label="Close navigation" class="rounded-md p-1 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
                 <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
@@ -120,14 +139,14 @@ const methodColor = (m?: string) => {
                                     class:list={[
                                         'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
                                         isActive
-                                            ? 'bg-gray-900 text-white'
-                                            : 'text-gray-700 hover:bg-gray-100'
+                                            ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
                                     ]}
                                 >
                                     {'method' in item && item.method && (
                                         <span class:list={[
                                             'inline-flex w-10 shrink-0 justify-end font-mono text-[10px] font-bold uppercase',
-                                            isActive ? 'text-white/70' : methodColor(item.method)
+                                            isActive ? 'text-white/70 dark:text-gray-900/70' : methodColor(item.method)
                                         ]}>
                                             {item.method}
                                         </span>
@@ -169,5 +188,12 @@ const methodColor = (m?: string) => {
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeDrawer()
+    })
+
+    // Theme toggle
+    const themeBtn = document.getElementById('docs-theme-toggle')
+    themeBtn?.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark')
+        try { localStorage.setItem('docs-theme', isDark ? 'dark' : 'light') } catch (_) {}
     })
 </script>
