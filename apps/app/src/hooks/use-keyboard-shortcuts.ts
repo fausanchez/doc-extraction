@@ -8,7 +8,8 @@ import {
     urlTemplates,
     urlDocuments,
     urlExtractions,
-    urlApiTokens
+    urlApiTokens,
+    urlSettings
 } from '@/urls'
 
 const GOTO_MAP: Record<string, () => string> = {
@@ -52,6 +53,14 @@ export function useKeyboardShortcuts() {
                 e.preventDefault()
                 clearG()
                 setPaletteOpen((v) => !v)
+                return
+            }
+
+            // ⌘, / Ctrl+, — settings
+            if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+                e.preventDefault()
+                clearG()
+                navigate(urlSettings(), { viewTransition: true })
                 return
             }
 

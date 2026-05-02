@@ -26,7 +26,7 @@ const GROUPS: ShortcutGroup[] = [
         rows: [
             { keys: ['⌘', 'K'], label: 'Open command palette' },
             { keys: ['?'], label: 'Open this cheatsheet' },
-            { keys: ['⌘', ','], label: 'Settings (coming soon)' }
+            { keys: ['⌘', ','], label: 'Go to Settings' }
         ]
     }
 ]
