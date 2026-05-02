@@ -10,6 +10,7 @@ import { useTheme } from '@/hooks/use-theme'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { CommandPalette } from '@/components/command-palette'
 import { ShortcutsModal } from '@/components/shortcuts-modal'
+import { FeedbackModal } from '@/components/feedback-modal'
 
 export function Layout() {
     const { theme } = useTheme()
@@ -35,6 +36,7 @@ export function Layout() {
             </SidebarProvider>
             <CommandPalette />
             <ShortcutsModal />
+            <FeedbackModal />
             <Toaster theme={theme} />
         </>
     )

@@ -10,11 +10,13 @@ import {
 import { Button } from '@repo/ui/components/ui/button.tsx'
 import { Link, useLocation, useMatches } from 'react-router'
 import { useMemo, type ReactNode } from 'react'
+import { useSetAtom } from 'jotai'
 import { urlDashboard } from '@/urls'
 import { cn } from '@repo/ui/lib/utils.ts'
 import { Home } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { feedbackModalOpenAtom } from '@/components/feedback-modal'
 
 type BreadcrumbItemType = { label: string; to: string; icon?: LucideIcon }
 type HandleData = {
@@ -25,6 +27,7 @@ type HandleData = {
 export function SiteHeader() {
     const matches = useMatches()
     const location = useLocation()
+    const openFeedback = useSetAtom(feedbackModalOpenAtom)
 
     const loaderData = useMemo(() => {
         const data: Record<string, unknown> = {}
@@ -99,6 +102,7 @@ export function SiteHeader() {
                     variant="ghost"
                     size="sm"
                     className="hidden h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground sm:inline-flex"
+                    onClick={() => openFeedback(true)}
                 >
                     Feedback
                 </Button>

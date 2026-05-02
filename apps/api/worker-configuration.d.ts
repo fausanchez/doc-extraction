@@ -22,6 +22,11 @@ interface CloudflareBindings {
     GITHUB_CLIENT_SECRET: string
     APP_URL: string
 
+    // Slack Incoming Webhook for feedback notifications.
+    // Set via: wrangler secret put SLACK_WEBHOOK_URL [--env develop|production]
+    // When unset, feedback is accepted but not forwarded to Slack.
+    SLACK_WEBHOOK_URL?: string
+
     // Extraction provider selector. Optional — defaults to `'anthropic'`
     // when unset. See `src/lib/extraction/registry.ts` for the registered
     // ids.
