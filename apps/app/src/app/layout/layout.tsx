@@ -11,10 +11,21 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { CommandPalette } from '@/components/command-palette'
 import { ShortcutsModal } from '@/components/shortcuts-modal'
 import { FeedbackModal } from '@/components/feedback-modal'
+import { Wizard } from '@/components/wizard/wizard'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { wizardDoneAtom, wizardOpenAtom } from '@/stores/wizard'
+import { useEffect } from 'react'
 
 export function Layout() {
     const { theme } = useTheme()
     useKeyboardShortcuts()
+    const wizardDone = useAtomValue(wizardDoneAtom)
+    const setWizardOpen = useSetAtom(wizardOpenAtom)
+
+    // Auto-open the wizard on first login (once — persisted in localStorage)
+    useEffect(() => {
+        if (!wizardDone) setWizardOpen(true)
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <>
@@ -37,6 +48,7 @@ export function Layout() {
             <CommandPalette />
             <ShortcutsModal />
             <FeedbackModal />
+            <Wizard />
             <Toaster theme={theme} />
         </>
     )
