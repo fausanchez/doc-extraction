@@ -1,0 +1,173 @@
+---
+interface Props {
+    activeSection: string
+    activePage: string
+}
+
+const { activeSection, activePage } = Astro.props
+const APP_URL = import.meta.env.PUBLIC_APP_URL ?? 'http://localhost:5173'
+
+const sections = [
+    {
+        id: 'getting-started',
+        label: 'Getting started',
+        items: [
+            { id: 'index', label: 'Introduction', href: '/docs' },
+            { id: 'quickstart', label: 'Quickstart', href: '/docs/quickstart' },
+            { id: 'authentication', label: 'Authentication', href: '/docs/authentication' }
+        ]
+    },
+    {
+        id: 'reference',
+        label: 'API reference',
+        items: [
+            { id: 'extract', label: 'Extract document', href: '/docs/endpoints/extract', method: 'POST' },
+            { id: 'get-extraction', label: 'Get extraction', href: '/docs/endpoints/get-extraction', method: 'GET' },
+            { id: 'list-products', label: 'List products', href: '/docs/endpoints/list-products', method: 'GET' }
+        ]
+    },
+    {
+        id: 'resources',
+        label: 'Resources',
+        items: [{ id: 'errors', label: 'Errors & rate limits', href: '/docs/errors' }]
+    }
+]
+
+const methodColor = (m?: string) => {
+    if (m === 'GET') return 'text-blue-600'
+    if (m === 'POST') return 'text-green-600'
+    return 'text-gray-500'
+}
+---
+
+<header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
+    <div class="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 lg:px-6">
+        <!-- Logo + breadcrumb -->
+        <a href="/" class="flex shrink-0 items-center gap-2">
+            <span class="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 via-violet-500 to-fuchsia-500 text-xs font-bold text-white shadow-sm">
+                D
+            </span>
+            <span class="text-sm font-semibold text-gray-900">dvop.io</span>
+        </a>
+        <span class="text-gray-300 select-none">/</span>
+        <span class="text-sm font-medium text-gray-500">Docs</span>
+
+        <div class="flex-1"></div>
+
+        <!-- Desktop: home link + CTA -->
+        <nav class="hidden items-center gap-1 md:flex">
+            <a
+                href="/"
+                class="rounded-md px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            >
+                Home
+            </a>
+        </nav>
+        <a
+            href={APP_URL}
+            class="inline-flex h-8 items-center rounded-lg bg-gray-900 px-3 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+        >
+            Open app
+        </a>
+
+        <!-- Mobile sidebar toggle -->
+        <button
+            id="docs-nav-toggle"
+            type="button"
+            aria-label="Open navigation"
+            aria-expanded="false"
+            class="ml-1 flex items-center justify-center rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 lg:hidden"
+        >
+            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18M3 12h18M3 18h18" />
+            </svg>
+        </button>
+    </div>
+</header>
+
+<!-- Mobile sidebar drawer -->
+<div id="docs-nav-drawer" class="fixed inset-0 z-50 hidden lg:hidden" aria-hidden="true">
+    <!-- Backdrop -->
+    <div id="docs-nav-backdrop" class="absolute inset-0 bg-black/40"></div>
+    <!-- Panel -->
+    <nav class="absolute left-0 top-0 flex h-full w-72 flex-col overflow-y-auto bg-white px-4 py-6 shadow-xl">
+        <div class="mb-6 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <span class="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 via-violet-500 to-fuchsia-500 text-xs font-bold text-white">
+                    D
+                </span>
+                <span class="text-sm font-semibold text-gray-900">dvop.io</span>
+            </a>
+            <button id="docs-nav-close" type="button" aria-label="Close navigation" class="rounded-md p-1 text-gray-500 hover:bg-gray-100">
+                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {sections.map((section) => (
+            <div class="mb-6">
+                <p class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    {section.label}
+                </p>
+                <ul class="flex flex-col gap-0.5">
+                    {section.items.map((item) => {
+                        const isActive = section.id === activeSection && item.id === activePage
+                        return (
+                            <li>
+                                <a
+                                    href={item.href}
+                                    class:list={[
+                                        'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
+                                        isActive
+                                            ? 'bg-gray-900 text-white'
+                                            : 'text-gray-700 hover:bg-gray-100'
+                                    ]}
+                                >
+                                    {'method' in item && item.method && (
+                                        <span class:list={[
+                                            'inline-flex w-10 shrink-0 justify-end font-mono text-[10px] font-bold uppercase',
+                                            isActive ? 'text-white/70' : methodColor(item.method)
+                                        ]}>
+                                            {item.method}
+                                        </span>
+                                    )}
+                                    <span>{item.label}</span>
+                                </a>
+                            </li>
+                        )
+                    })}
+                </ul>
+            </div>
+        ))}
+    </nav>
+</div>
+
+<script>
+    const toggle = document.getElementById('docs-nav-toggle')
+    const drawer = document.getElementById('docs-nav-drawer')
+    const backdrop = document.getElementById('docs-nav-backdrop')
+    const close = document.getElementById('docs-nav-close')
+
+    function open() {
+        drawer?.classList.remove('hidden')
+        toggle?.setAttribute('aria-expanded', 'true')
+        drawer?.removeAttribute('aria-hidden')
+        document.body.style.overflow = 'hidden'
+    }
+
+    function closeDrawer() {
+        drawer?.classList.add('hidden')
+        toggle?.setAttribute('aria-expanded', 'false')
+        drawer?.setAttribute('aria-hidden', 'true')
+        document.body.style.overflow = ''
+    }
+
+    toggle?.addEventListener('click', open)
+    backdrop?.addEventListener('click', closeDrawer)
+    close?.addEventListener('click', closeDrawer)
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDrawer()
+    })
+</script>
