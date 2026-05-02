@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { type Extraction } from '@/api-client'
+import { EmptyState } from '@/components/empty-state'
 import { urlTemplate, urlTemplates } from '@/urls'
 import type { route } from './route'
 
@@ -74,23 +75,19 @@ export function Extractions() {
             </header>
 
             {extractions.length === 0 ? (
-                <div className="dropzone flex flex-col items-center justify-center gap-3 rounded-xl py-16">
-                    <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
-                        <Cpu className="size-5 text-muted-foreground" />
-                    </div>
-                    <div className="text-center">
-                        <p className="text-sm font-medium">No extractions yet</p>
-                        <p className="text-[13px] text-muted-foreground">
-                            Open a template and upload a document to run your first.
-                        </p>
-                    </div>
-                    <Button asChild variant="outline" size="sm" className="gap-1.5">
-                        <Link to={urlTemplates()} viewTransition>
-                            <Sparkles className="size-3.5" />
-                            Browse templates
-                        </Link>
-                    </Button>
-                </div>
+                <EmptyState
+                    icon={Cpu}
+                    title="No extractions yet"
+                    description="Open a template and upload a document to run your first."
+                    action={
+                        <Button asChild variant="outline" size="sm" className="gap-1.5">
+                            <Link to={urlTemplates()} viewTransition>
+                                <Sparkles className="size-3.5" />
+                                Browse templates
+                            </Link>
+                        </Button>
+                    }
+                />
             ) : (
                 <div className="row-list">
                     {extractions.map((ext) => {
