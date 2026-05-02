@@ -91,40 +91,48 @@ export const sessions = sqliteTable(
 )
 
 // Templates define the JSON structure for data extraction
-export const templates = sqliteTable('templates', {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    userId: integer('user_id')
-        .references(() => users.id)
-        .notNull(),
-    name: text('name').notNull(),
-    description: text('description').notNull().default(''),
-    // JSON schema defining the fields to extract
-    // e.g. [{ key: "invoice_number", label: "Invoice Number", type: "string" }]
-    schema: text('schema').notNull().default('[]'),
-    status: text('status').notNull().default('active'),
-    createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text('updated_at')
-        .notNull()
-        .default(sql`(CURRENT_TIMESTAMP)`)
-        .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
-})
+export const templates = sqliteTable(
+    'templates',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        userId: integer('user_id')
+            .references(() => users.id)
+            .notNull(),
+        name: text('name').notNull(),
+        description: text('description').notNull().default(''),
+        // JSON schema defining the fields to extract
+        // e.g. [{ key: "invoice_number", label: "Invoice Number", type: "string" }]
+        schema: text('schema').notNull().default('[]'),
+        status: text('status').notNull().default('active'),
+        createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+        updatedAt: text('updated_at')
+            .notNull()
+            .default(sql`(CURRENT_TIMESTAMP)`)
+            .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
+    },
+    (t) => [index('templates_user_id_idx').on(t.userId)]
+)
 
-export const documents = sqliteTable('documents', {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    userId: integer('user_id')
-        .references(() => users.id)
-        .notNull(),
-    name: text('name').notNull(),
-    filePath: text('file_path').notNull(),
-    mimeType: text('mime_type').notNull().default(''),
-    size: integer('size').notNull().default(0),
-    status: text('status').notNull().default('uploaded'), // uploaded | processing | done | error
-    createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text('updated_at')
-        .notNull()
-        .default(sql`(CURRENT_TIMESTAMP)`)
-        .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
-})
+export const documents = sqliteTable(
+    'documents',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        userId: integer('user_id')
+            .references(() => users.id)
+            .notNull(),
+        name: text('name').notNull(),
+        filePath: text('file_path').notNull(),
+        mimeType: text('mime_type').notNull().default(''),
+        size: integer('size').notNull().default(0),
+        status: text('status').notNull().default('uploaded'), // uploaded | processing | done | error
+        createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+        updatedAt: text('updated_at')
+            .notNull()
+            .default(sql`(CURRENT_TIMESTAMP)`)
+            .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
+    },
+    (t) => [index('documents_user_id_idx').on(t.userId)]
+)
 
 // Programmatic-access credentials. Each row represents a single user-issued
 // token; the plaintext is shown to the user once at creation and only its
@@ -173,24 +181,31 @@ export const apiTokenUsageDaily = sqliteTable(
     (t) => [primaryKey({ columns: [t.tokenId, t.day] })]
 )
 
-export const extractions = sqliteTable('extractions', {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    documentId: integer('document_id')
-        .references(() => documents.id)
-        .notNull(),
-    templateId: integer('template_id')
-        .references(() => templates.id)
-        .notNull(),
-    userId: integer('user_id')
-        .references(() => users.id)
-        .notNull(),
-    // JSON result matching the template schema
-    result: text('result').notNull().default('{}'),
-    status: text('status').notNull().default('pending'), // pending | processing | done | error
-    errorMessage: text('error_message').notNull().default(''),
-    createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text('updated_at')
-        .notNull()
-        .default(sql`(CURRENT_TIMESTAMP)`)
-        .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
-})
+export const extractions = sqliteTable(
+    'extractions',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        documentId: integer('document_id')
+            .references(() => documents.id)
+            .notNull(),
+        templateId: integer('template_id')
+            .references(() => templates.id)
+            .notNull(),
+        userId: integer('user_id')
+            .references(() => users.id)
+            .notNull(),
+        // JSON result matching the template schema
+        result: text('result').notNull().default('{}'),
+        status: text('status').notNull().default('pending'), // pending | processing | done | error
+        errorMessage: text('error_message').notNull().default(''),
+        createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+        updatedAt: text('updated_at')
+            .notNull()
+            .default(sql`(CURRENT_TIMESTAMP)`)
+            .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
+    },
+    (t) => [
+        index('extractions_user_id_idx').on(t.userId),
+        index('extractions_document_id_idx').on(t.documentId)
+    ]
+)
