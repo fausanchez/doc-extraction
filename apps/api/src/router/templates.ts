@@ -12,17 +12,21 @@ const router = new Hono<{ Bindings: CloudflareBindings; Variables: { userId: num
 router.use('*', authMiddleware)
 
 const fieldSchema = z.object({
-    key: z.string().min(1),
-    label: z.string().min(1),
+    key: z
+        .string()
+        .min(1)
+        .max(64)
+        .regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/, 'Key must start with a letter or underscore and contain only alphanumeric characters and underscores'),
+    label: z.string().min(1).max(256),
     type: z.enum(['string', 'number', 'date', 'boolean', 'array']),
     required: z.boolean().optional().default(false),
-    description: z.string().optional().default('')
+    description: z.string().max(512).optional().default('')
 })
 
 const templateSchema = z.object({
-    name: z.string().min(1),
-    description: z.string().optional().default(''),
-    schema: z.array(fieldSchema)
+    name: z.string().min(1).max(256),
+    description: z.string().max(1024).optional().default(''),
+    schema: z.array(fieldSchema).min(1).max(50)
 })
 
 // List templates
