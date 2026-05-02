@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { documentsApi, type Document } from '@/api-client'
+import { EmptyState } from '@/components/empty-state'
 import { toast } from 'sonner'
 import type { route } from './route'
 
@@ -129,26 +130,22 @@ export function Documents() {
             </header>
 
             {documents.length === 0 ? (
-                <div className="dropzone flex flex-col items-center justify-center gap-3 rounded-xl py-16">
-                    <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
-                        <FileText className="size-5 text-muted-foreground" />
-                    </div>
-                    <div className="text-center">
-                        <p className="text-sm font-medium">No documents yet</p>
-                        <p className="text-[13px] text-muted-foreground">
-                            Upload a file or open a template to start an extraction.
-                        </p>
-                    </div>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="gap-1.5"
-                    >
-                        <Upload className="size-3.5" />
-                        Upload document
-                    </Button>
-                </div>
+                <EmptyState
+                    icon={FileText}
+                    title="No documents yet"
+                    description="Upload a file or open a template to start an extraction."
+                    action={
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="gap-1.5"
+                        >
+                            <Upload className="size-3.5" />
+                            Upload document
+                        </Button>
+                    }
+                />
             ) : (
                 <div className="row-list">
                     {documents.map((doc) => (

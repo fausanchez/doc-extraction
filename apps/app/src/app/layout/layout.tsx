@@ -12,6 +12,7 @@ import { CommandPalette } from '@/components/command-palette'
 import { ShortcutsModal } from '@/components/shortcuts-modal'
 import { FeedbackModal } from '@/components/feedback-modal'
 import { Wizard } from '@/components/wizard/wizard'
+import { NavProgress } from '@/components/nav-progress'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { wizardDoneAtom, wizardOpenAtom } from '@/stores/wizard'
 import { useEffect } from 'react'
@@ -29,6 +30,7 @@ export function Layout() {
 
     return (
         <>
+            <NavProgress />
             <SidebarProvider
                 style={
                     {

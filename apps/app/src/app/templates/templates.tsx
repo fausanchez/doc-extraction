@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { templatesApi, type Template, type TemplateField } from '@/api-client'
+import { EmptyState } from '@/components/empty-state'
 import { urlTemplate } from '@/urls'
 import { toast } from 'sonner'
 import type { route } from './route'
@@ -178,27 +179,23 @@ export function Templates() {
 
             {/* List */}
             {filtered.length === 0 ? (
-                <div className="dropzone flex flex-col items-center justify-center gap-3 rounded-xl py-16">
-                    <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
-                        <LayoutTemplate className="size-5 text-muted-foreground" />
-                    </div>
-                    <div className="text-center">
-                        <p className="text-sm font-medium">
-                            {query ? 'No matches' : 'No templates yet'}
-                        </p>
-                        <p className="text-[13px] text-muted-foreground">
-                            {query
-                                ? 'Try a different search term.'
-                                : 'Create your first schema to start extracting data.'}
-                        </p>
-                    </div>
-                    {!query && (
-                        <Button variant="outline" onClick={openCreate} size="sm" className="gap-1.5">
-                            <Plus className="size-3.5" />
-                            Create template
-                        </Button>
-                    )}
-                </div>
+                <EmptyState
+                    icon={LayoutTemplate}
+                    title={query ? 'No matches' : 'No templates yet'}
+                    description={
+                        query
+                            ? 'Try a different search term.'
+                            : 'Create your first schema to start extracting data.'
+                    }
+                    action={
+                        !query ? (
+                            <Button variant="outline" onClick={openCreate} size="sm" className="gap-1.5">
+                                <Plus className="size-3.5" />
+                                Create template
+                            </Button>
+                        ) : undefined
+                    }
+                />
             ) : (
                 <div className="row-list">
                     {filtered.map((t) => {
