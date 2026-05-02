@@ -1,6 +1,7 @@
 ---
 import Layout from './Layout.astro'
 import Sidebar from '../components/docs/Sidebar.astro'
+import DocsHeader from '../components/docs/DocsHeader.astro'
 import TokenInjector from '../components/docs/TokenInjector.astro'
 
 interface Props {
@@ -18,15 +19,16 @@ const { title, description, section, page } = Astro.props
     description={description ?? `${title} — dvop.io API reference and examples.`}
 >
     {/*
-      Layout.astro now ships a dark mesh/grid theme for the marketing
-      surface; the docs intentionally render on a clean light surface for
-      readability. We blanket the viewport with an opaque white wrapper that
-      hides the dark body + fixed mesh background underneath.
+      Layout.astro ships a dark mesh/grid theme for the marketing surface;
+      docs render on a clean light surface. The opaque white wrapper hides
+      the dark body + fixed mesh background underneath.
     */}
     <div class="relative z-0 min-h-svh bg-white text-gray-900">
-        <div class="mx-auto flex w-full max-w-7xl gap-10 px-4 pt-24 pb-20 lg:px-6">
+        <DocsHeader activeSection={section} activePage={page} />
+
+        <div class="mx-auto flex w-full max-w-7xl gap-10 px-4 py-10 lg:px-6">
             <aside class="hidden w-60 shrink-0 lg:block">
-                <div class="sticky top-24">
+                <div class="sticky top-20">
                     <Sidebar activeSection={section} activePage={page} />
                 </div>
             </aside>
