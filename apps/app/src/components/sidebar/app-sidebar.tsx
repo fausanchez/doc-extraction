@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useSetAtom } from 'jotai'
 import { commandPaletteOpenAtom } from '@/stores/command-palette'
+import { wizardOpenAtom, wizardDoneAtom, wizardStepAtom } from '@/stores/wizard'
 import { NavMain } from '@/components/sidebar/nav-main.tsx'
 import {
     Sidebar,
@@ -35,7 +36,8 @@ import {
     LogOut,
     Search,
     Settings,
-    Sparkles
+    Sparkles,
+    BookOpen
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import { useAtomValue, useSetAtom } from 'jotai'
@@ -69,6 +71,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const setUser = useSetAtom(userAtom)
     const navigate = useNavigate()
     const openPalette = useSetAtom(commandPaletteOpenAtom)
+    const setWizardOpen = useSetAtom(wizardOpenAtom)
+    const setWizardStep = useSetAtom(wizardStepAtom)
+    const setWizardDone = useSetAtom(wizardDoneAtom)
+
+    const openWizard = () => {
+        setWizardDone(false)
+        setWizardStep(0)
+        setWizardOpen(true)
+    }
 
     const handleLogout = async () => {
         // Best-effort server-side revocation; the refresh token rides in an
@@ -203,6 +214,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     <Settings />
                                     Settings
                                     <DropdownMenuShortcut>⌘,</DropdownMenuShortcut>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={openWizard}>
+                                    <BookOpen />
+                                    Start tour
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
