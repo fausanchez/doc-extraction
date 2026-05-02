@@ -14,6 +14,7 @@ import {
     Plus
 } from 'lucide-react'
 import { UsageCard } from '@/components/usage/usage-card'
+import { OnboardingChecklist } from '@/components/onboarding-checklist'
 import { urlDocuments, urlExtractions, urlTemplates } from '@/urls'
 import type { route } from './route'
 
@@ -58,7 +59,7 @@ const stats = [
 ]
 
 export function Dashboard() {
-    const { stats: data, usage } = useLoaderData<typeof route.loader>()
+    const { stats: data, usage, onboarding } = useLoaderData<typeof route.loader>()
 
     return (
         <div className="flex flex-col gap-6">
@@ -101,6 +102,9 @@ export function Dashboard() {
                     </Link>
                 ))}
             </div>
+
+            {/* Onboarding checklist — hides once all steps done or dismissed */}
+            <OnboardingChecklist status={onboarding} />
 
             {/* Two-col: recent activity + usage / quick actions */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
