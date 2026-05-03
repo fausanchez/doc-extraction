@@ -17,6 +17,10 @@ export { selectProvider, listProviders } from './registry'
 // The function never throws — every failure path lands as an `error` row so
 // the caller (which runs us via `executionCtx.waitUntil`) sees a clean
 // promise.
+// Cloudflare Workers have a 30 s wall-clock limit on paid plans. Leave 5 s of
+// headroom for DB writes and error handling after the LLM call returns.
+const EXTRACTION_TIMEOUT_MS = 25_000
+
 export async function processExtraction(
     env: CloudflareBindings,
     extractionId: number,
@@ -37,7 +41,7 @@ export async function processExtraction(
         const fields = JSON.parse(template.schema) as ExtractionField[]
         const provider = selectProvider(env)
 
-        const output = await provider.extract(
+        const extractionCall = provider.extract(
             {
                 file: {
                     bytes: await obj.arrayBuffer(),
@@ -48,6 +52,15 @@ export async function processExtraction(
             },
             env
         )
+
+        const timeoutRace = new Promise<never>((_, reject) =>
+            setTimeout(
+                () => reject(new Error(`Extraction timed out after ${EXTRACTION_TIMEOUT_MS / 1000}s`)),
+                EXTRACTION_TIMEOUT_MS
+            )
+        )
+
+        const output = await Promise.race([extractionCall, timeoutRace])
 
         const resultJson = JSON.stringify(output.result)
         if (resultJson.length > 1_000_000) {
