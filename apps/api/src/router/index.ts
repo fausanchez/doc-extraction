@@ -8,10 +8,51 @@ import meRouter from './me'
 import apiTokensRouter from './api-tokens'
 import feedbackRouter from './feedback'
 import v1Router from './v1'
+import { selectProvider } from '@/lib/extraction'
 
-const router = new Hono()
+const router = new Hono<{ Bindings: CloudflareBindings }>()
 
-router.get('/health', (c) => c.json({ data: 'OK', error: false }))
+router.get('/health', async (c) => {
+    const checks: Record<string, 'ok' | 'fail'> = {
+        db: 'fail',
+        r2: 'fail',
+        provider: 'fail'
+    }
+
+    // Each check gets 3 s — enough to detect a real outage without making the
+    // health endpoint itself slow under normal conditions.
+    const timeout = (ms: number) =>
+        new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), ms)
+        )
+
+    await Promise.allSettled([
+        Promise.race([c.env.DB.prepare('SELECT 1').run(), timeout(3000)])
+            .then(() => { checks.db = 'ok' })
+            .catch(() => {}),
+
+        // R2: list with limit=0 just exercises the binding without reading data.
+        Promise.race([c.env.BUCKET.list({ limit: 1 }), timeout(3000)])
+            .then(() => { checks.r2 = 'ok' })
+            .catch(() => {}),
+
+        // Provider: only checks that credentials are present — does not call the AI.
+        Promise.resolve()
+            .then(() => {
+                selectProvider(c.env)
+                checks.provider = 'ok'
+            })
+            .catch(() => {})
+    ])
+
+    const allOk = Object.values(checks).every((v) => v === 'ok')
+    const status = allOk ? 'ok' : 'degraded'
+
+    return c.json(
+        { data: { status, checks }, error: !allOk },
+        allOk ? 200 : 503
+    )
+})
 
 router.route('/auth', authRouter)
 router.route('/me', meRouter)
