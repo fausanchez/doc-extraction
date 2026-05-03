@@ -1,4 +1,4 @@
-import { useLoaderData, useRevalidator } from 'react-router'
+import { useLoaderData, useRevalidator, useSearchParams } from 'react-router'
 import { Button } from '@repo/ui/components/ui/button.tsx'
 import { Badge } from '@repo/ui/components/ui/badge.tsx'
 import {
@@ -21,11 +21,9 @@ import {
 import { useRef, useState } from 'react'
 import { documentsApi, type Document } from '@/api-client'
 import { EmptyState } from '@/components/empty-state'
-import { Pagination, paginate } from '@/components/pagination'
+import { Pagination } from '@/components/pagination'
 import { toast } from 'sonner'
 import type { route } from './route'
-
-const PAGE_SIZE = 25
 
 function statusVariant(status: string) {
     if (status === 'done') return 'default'
@@ -61,12 +59,13 @@ function relativeTime(ts: number) {
 }
 
 export function Documents() {
-    const { documents } = useLoaderData<typeof route.loader>()
+    const { documents, pagination } = useLoaderData<typeof route.loader>()
     const { revalidate } = useRevalidator()
+    const [searchParams, setSearchParams] = useSearchParams()
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [uploading, setUploading] = useState(false)
-    const [page, setPage] = useState(1)
-    const paged = paginate(documents, page, PAGE_SIZE)
+
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -79,6 +78,8 @@ export function Documents() {
                 return
             }
             toast.success('Document uploaded')
+            // Go back to page 1 so the new document is visible at the top.
+            setSearchParams({})
             revalidate()
         } catch {
             toast.error('Failed to upload document')
@@ -105,7 +106,7 @@ export function Documents() {
                     <div className="flex items-center gap-2">
                         <h1 className="text-xl font-semibold tracking-tight">Documents</h1>
                         <Badge variant="secondary" className="tabular">
-                            {documents.length}
+                            {pagination.total}
                         </Badge>
                     </div>
                     <p className="mt-0.5 text-[13px] text-muted-foreground">
@@ -134,7 +135,7 @@ export function Documents() {
                 />
             </header>
 
-            {documents.length === 0 ? (
+            {pagination.total === 0 ? (
                 <EmptyState
                     icon={FileText}
                     title="No documents yet"
@@ -154,53 +155,53 @@ export function Documents() {
             ) : (
                 <>
                     <div className="row-list">
-                    {paged.map((doc) => (
-                        <div
-                            key={doc.id}
-                            className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50"
-                        >
-                            <FileText className="size-4 shrink-0 text-muted-foreground" />
-                            <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium">{doc.name}</p>
-                                <p className="truncate text-[11px] tabular text-muted-foreground">
-                                    {formatBytes(doc.size)} · {relativeTime(doc.createdAt)}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <StatusIcon status={doc.status} />
-                                <Badge
-                                    variant={statusVariant(doc.status)}
-                                    className="capitalize"
-                                >
-                                    {doc.status}
-                                </Badge>
-                            </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon-sm" aria-label="Actions">
-                                        <MoreHorizontal className="size-3.5" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-44">
-                                    <DropdownMenuItem disabled>Download</DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                        variant="destructive"
-                                        onSelect={() => handleDelete(doc)}
+                        {documents.map((doc) => (
+                            <div
+                                key={doc.id}
+                                className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50"
+                            >
+                                <FileText className="size-4 shrink-0 text-muted-foreground" />
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate text-sm font-medium">{doc.name}</p>
+                                    <p className="truncate text-[11px] tabular text-muted-foreground">
+                                        {formatBytes(doc.size)} · {relativeTime(doc.createdAt)}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <StatusIcon status={doc.status} />
+                                    <Badge
+                                        variant={statusVariant(doc.status)}
+                                        className="capitalize"
                                     >
-                                        <Trash2 />
-                                        Delete
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    ))}
+                                        {doc.status}
+                                    </Badge>
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon-sm" aria-label="Actions">
+                                            <MoreHorizontal className="size-3.5" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-44">
+                                        <DropdownMenuItem disabled>Download</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                            variant="destructive"
+                                            onSelect={() => handleDelete(doc)}
+                                        >
+                                            <Trash2 />
+                                            Delete
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        ))}
                     </div>
                     <Pagination
                         page={page}
-                        pageSize={PAGE_SIZE}
-                        total={documents.length}
-                        onPage={setPage}
+                        pageSize={pagination.limit}
+                        total={pagination.total}
+                        onPage={(p) => setSearchParams(p === 1 ? {} : { page: String(p) })}
                     />
                 </>
             )}
