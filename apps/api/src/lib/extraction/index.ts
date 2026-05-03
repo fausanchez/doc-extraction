@@ -49,9 +49,14 @@ export async function processExtraction(
             env
         )
 
+        const resultJson = JSON.stringify(output.result)
+        if (resultJson.length > 1_000_000) {
+            throw new Error('Extraction result exceeds the maximum allowed size (1 MB)')
+        }
+
         await db
             .update(extractions)
-            .set({ status: 'done', result: JSON.stringify(output.result) })
+            .set({ status: 'done', result: resultJson })
             .where(eq(extractions.id, extractionId))
 
         await db.update(documents).set({ status: 'done' }).where(eq(documents.id, doc.id))
