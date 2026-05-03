@@ -16,6 +16,7 @@
     "dependencies": {
         "@hono/zod-validator": "^0.7.6",
         "@repo/utils": "workspace:*",
+        "@sentry/cloudflare": "^10.51.0",
         "drizzle-orm": "^0.45.1",
         "hono": "^4.11.9",
         "zod": "^4.3.6"

@@ -39,4 +39,10 @@ interface CloudflareBindings {
     OPENAI_API_KEY?: string
     // Optional model override for the openai provider (defaults to gpt-4o-mini).
     OPENAI_MODEL?: string
+
+    // Sentry DSN for error tracking. Optional — when unset, errors are not forwarded.
+    // Set via: wrangler secret put SENTRY_DSN [--env develop|production]
+    SENTRY_DSN?: string
+    // Deployment environment label surfaced in Sentry events (development | develop | production).
+    ENVIRONMENT?: string
 }
