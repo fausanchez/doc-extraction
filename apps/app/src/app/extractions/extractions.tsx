@@ -1,4 +1,4 @@
-import { Link, useLoaderData, useRevalidator } from 'react-router'
+import { Link, useLoaderData, useRevalidator, useSearchParams } from 'react-router'
 import { Button } from '@repo/ui/components/ui/button.tsx'
 import { Badge } from '@repo/ui/components/ui/badge.tsx'
 import {
@@ -19,11 +19,9 @@ import {
 import { useEffect, useState } from 'react'
 import { type Extraction } from '@/api-client'
 import { EmptyState } from '@/components/empty-state'
-import { Pagination, paginate } from '@/components/pagination'
+import { Pagination } from '@/components/pagination'
 import { urlTemplate, urlTemplates } from '@/urls'
 import type { route } from './route'
-
-const PAGE_SIZE = 25
 
 function statusVariant(status: string) {
     if (status === 'done') return 'default'
@@ -41,11 +39,12 @@ function StatusIcon({ status }: { status: string }) {
 }
 
 export function Extractions() {
-    const { extractions, documents, templates } = useLoaderData<typeof route.loader>()
+    const { extractions, pagination, documents, templates } = useLoaderData<typeof route.loader>()
     const { revalidate } = useRevalidator()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [selected, setSelected] = useState<Extraction | null>(null)
-    const [page, setPage] = useState(1)
-    const paged = paginate(extractions, page, PAGE_SIZE)
+
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
 
     // Auto-refresh while jobs are in flight
     useEffect(() => {
@@ -64,7 +63,7 @@ export function Extractions() {
                     <div className="flex items-center gap-2">
                         <h1 className="text-xl font-semibold tracking-tight">Extractions</h1>
                         <Badge variant="secondary" className="tabular">
-                            {extractions.length}
+                            {pagination.total}
                         </Badge>
                     </div>
                     <p className="mt-0.5 text-[13px] text-muted-foreground">
@@ -79,7 +78,7 @@ export function Extractions() {
                 </Button>
             </header>
 
-            {extractions.length === 0 ? (
+            {pagination.total === 0 ? (
                 <EmptyState
                     icon={Cpu}
                     title="No extractions yet"
@@ -96,54 +95,54 @@ export function Extractions() {
             ) : (
                 <>
                     <div className="row-list">
-                    {paged.map((ext) => {
-                        const doc = documents.find((d) => d.id === ext.documentId)
-                        const tmpl = templates.find((t) => t.id === ext.templateId)
-                        return (
-                            <button
-                                key={ext.id}
-                                type="button"
-                                onClick={() => setSelected(ext)}
-                                className="flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted/50"
-                            >
-                                <StatusIcon status={ext.status} />
-                                <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-medium">
-                                        {doc?.name ?? `Document #${ext.documentId}`}
-                                    </p>
-                                    <p className="truncate text-[11px] text-muted-foreground">
-                                        Template:{' '}
-                                        {tmpl ? (
-                                            <Link
-                                                to={urlTemplate(tmpl.id)}
-                                                viewTransition
-                                                onClick={(e) => e.stopPropagation()}
-                                                className="hover:underline"
-                                            >
-                                                {tmpl.name}
-                                            </Link>
-                                        ) : (
-                                            `#${ext.templateId}`
-                                        )}
-                                        {' · '}
-                                        <span className="tabular">#{ext.id}</span>
-                                    </p>
-                                </div>
-                                <span className="hidden text-[11px] tabular text-muted-foreground md:block">
-                                    {new Date(ext.createdAt).toLocaleString()}
-                                </span>
-                                <Badge variant={statusVariant(ext.status)} className="capitalize">
-                                    {ext.status}
-                                </Badge>
-                            </button>
-                        )
-                    })}
+                        {extractions.map((ext) => {
+                            const doc = documents.find((d) => d.id === ext.documentId)
+                            const tmpl = templates.find((t) => t.id === ext.templateId)
+                            return (
+                                <button
+                                    key={ext.id}
+                                    type="button"
+                                    onClick={() => setSelected(ext)}
+                                    className="flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted/50"
+                                >
+                                    <StatusIcon status={ext.status} />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-medium">
+                                            {doc?.name ?? `Document #${ext.documentId}`}
+                                        </p>
+                                        <p className="truncate text-[11px] text-muted-foreground">
+                                            Template:{' '}
+                                            {tmpl ? (
+                                                <Link
+                                                    to={urlTemplate(tmpl.id)}
+                                                    viewTransition
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="hover:underline"
+                                                >
+                                                    {tmpl.name}
+                                                </Link>
+                                            ) : (
+                                                `#${ext.templateId}`
+                                            )}
+                                            {' · '}
+                                            <span className="tabular">#{ext.id}</span>
+                                        </p>
+                                    </div>
+                                    <span className="hidden text-[11px] tabular text-muted-foreground md:block">
+                                        {new Date(ext.createdAt).toLocaleString()}
+                                    </span>
+                                    <Badge variant={statusVariant(ext.status)} className="capitalize">
+                                        {ext.status}
+                                    </Badge>
+                                </button>
+                            )
+                        })}
                     </div>
                     <Pagination
                         page={page}
-                        pageSize={PAGE_SIZE}
-                        total={extractions.length}
-                        onPage={setPage}
+                        pageSize={pagination.limit}
+                        total={pagination.total}
+                        onPage={(p) => setSearchParams(p === 1 ? {} : { page: String(p) })}
                     />
                 </>
             )}

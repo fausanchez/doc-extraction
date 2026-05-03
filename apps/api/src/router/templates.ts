@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { drizzle } from 'drizzle-orm/d1'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, count } from 'drizzle-orm'
 import { templates } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
 import { zValidator } from '@/lib/utils'
-import { idParamSchema } from '@/lib/validators'
+import { idParamSchema, pageQuerySchema } from '@/lib/validators'
 
 const router = new Hono<{ Bindings: CloudflareBindings; Variables: { userId: number; role: string } }>()
 
@@ -30,16 +30,29 @@ const templateSchema = z.object({
 })
 
 // List templates
-router.get('/', async (c) => {
+router.get('/', zValidator('query', pageQuerySchema), async (c) => {
     const userId = c.get('userId')
+    const { page, limit } = c.req.valid('query')
+    const offset = (page - 1) * limit
     const db = drizzle(c.env.DB)
+
+    const where = and(eq(templates.userId, userId), eq(templates.status, 'active'))
+
+    const [{ total }] = await db.select({ total: count() }).from(templates).where(where)
+
     const tmps = await db
         .select()
         .from(templates)
-        .where(and(eq(templates.userId, userId), eq(templates.status, 'active')))
+        .where(where)
         .orderBy(desc(templates.createdAt))
+        .limit(limit)
+        .offset(offset)
 
-    return c.json({ data: tmps, error: false })
+    return c.json({
+        data: tmps,
+        error: false,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+    })
 })
 
 // Get single template

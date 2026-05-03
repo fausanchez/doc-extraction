@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { drizzle } from 'drizzle-orm/d1'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, count } from 'drizzle-orm'
 import { documents, extractions, templates } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
 import { zValidator } from '@/lib/utils'
-import { idParamSchema } from '@/lib/validators'
+import { idParamSchema, pageQuerySchema } from '@/lib/validators'
 import { rateLimit, keyByUser } from '@/middleware/rate-limit'
 import { processExtraction } from '@/lib/extraction'
 import { assertExtractionAllowed } from '@/lib/products'
@@ -14,17 +14,39 @@ const router = new Hono<{ Bindings: CloudflareBindings; Variables: { userId: num
 
 router.use('*', authMiddleware)
 
-// List extractions
-router.get('/', async (c) => {
+const listQuerySchema = pageQuerySchema.extend({
+    status: z.enum(['pending', 'processing', 'done', 'error']).optional()
+})
+
+// List extractions — supports ?page, ?limit and optional ?status filter.
+router.get('/', zValidator('query', listQuerySchema), async (c) => {
     const userId = c.get('userId')
+    const { page, limit, status } = c.req.valid('query')
+    const offset = (page - 1) * limit
     const db = drizzle(c.env.DB)
+
+    const where = status
+        ? and(eq(extractions.userId, userId), eq(extractions.status, status))
+        : eq(extractions.userId, userId)
+
+    const [{ total }] = await db
+        .select({ total: count() })
+        .from(extractions)
+        .where(where)
+
     const exts = await db
         .select()
         .from(extractions)
-        .where(eq(extractions.userId, userId))
+        .where(where)
         .orderBy(desc(extractions.createdAt))
+        .limit(limit)
+        .offset(offset)
 
-    return c.json({ data: exts, error: false })
+    return c.json({
+        data: exts,
+        error: false,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+    })
 })
 
 // Get single extraction

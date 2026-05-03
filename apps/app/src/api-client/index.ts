@@ -8,6 +8,17 @@ export type ApiResponse<T> =
     | { data: T; error: false }
     | { data: null; error: true; message: string }
 
+export type Pagination = {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+}
+
+export type PagedResponse<T> =
+    | { data: T; error: false; pagination: Pagination }
+    | { data: null; error: true; message: string }
+
 type LoginPayload = {
     accessToken: string
     accessTokenExpiresIn: number
@@ -143,7 +154,10 @@ export type Document = {
 }
 
 export const documentsApi = {
-    list: () => apiClient.get('documents').json<ApiResponse<Document[]>>(),
+    list: (params?: { page?: number; limit?: number }) =>
+        apiClient
+            .get('documents', { searchParams: params as Record<string, string | number> })
+            .json<PagedResponse<Document[]>>(),
     get: (id: number) => apiClient.get(`documents/${id}`).json<ApiResponse<Document>>(),
     upload: (file: File) => {
         const formData = new FormData()
@@ -173,7 +187,10 @@ export type Template = {
 }
 
 export const templatesApi = {
-    list: () => apiClient.get('templates').json<ApiResponse<Template[]>>(),
+    list: (params?: { page?: number; limit?: number }) =>
+        apiClient
+            .get('templates', { searchParams: params as Record<string, string | number> })
+            .json<PagedResponse<Template[]>>(),
     get: (id: number | string) => apiClient.get(`templates/${id}`).json<ApiResponse<Template>>(),
     create: (data: { name: string; description: string; schema: TemplateField[] }) =>
         apiClient.post('templates', { json: data }).json<ApiResponse<Template>>(),
@@ -208,7 +225,10 @@ export type QuotaExceeded = {
 export type StartExtractionResponse = ApiResponse<Extraction> | QuotaExceeded
 
 export const extractionsApi = {
-    list: () => apiClient.get('extractions').json<ApiResponse<Extraction[]>>(),
+    list: (params?: { page?: number; limit?: number; status?: string }) =>
+        apiClient
+            .get('extractions', { searchParams: params as Record<string, string | number> })
+            .json<PagedResponse<Extraction[]>>(),
     get: (id: number) => apiClient.get(`extractions/${id}`).json<ApiResponse<Extraction>>(),
     start: (documentId: number, templateId: number) =>
         apiClient

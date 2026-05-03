@@ -7,32 +7,31 @@ export const route = {
     path: urlDashboard(),
     loader: async () => {
         try {
-            const [docs, tmps, exts, usageRes, tokensRes] = await Promise.all([
-                documentsApi.list(),
-                templatesApi.list(),
-                extractionsApi.list(),
-                meApi.usage(),
-                apiTokensApi.list()
-            ])
+            const [docsPage, tmpsPage, extsPage, doneExtsPage, usageRes, tokensRes] =
+                await Promise.all([
+                    documentsApi.list({ limit: 1 }),
+                    templatesApi.list({ limit: 1 }),
+                    extractionsApi.list({ limit: 5 }),
+                    extractionsApi.list({ status: 'done', limit: 1 }),
+                    meApi.usage(),
+                    apiTokensApi.list()
+                ])
 
-            const documents = docs.error ? [] : (docs.data ?? [])
-            const templates = tmps.error ? [] : (tmps.data ?? [])
-            const extractions = exts.error ? [] : (exts.data ?? [])
             const usage = usageRes.error ? null : (usageRes.data ?? null)
             const apiTokens = tokensRes.error ? [] : (tokensRes.data ?? [])
 
             return {
                 stats: {
-                    documents: documents.length,
-                    templates: templates.length,
-                    extractions: extractions.length,
-                    done: extractions.filter((e) => e.status === 'done').length,
-                    recentExtractions: extractions.slice(0, 5)
+                    documents: docsPage.error ? 0 : docsPage.pagination.total,
+                    templates: tmpsPage.error ? 0 : tmpsPage.pagination.total,
+                    extractions: extsPage.error ? 0 : extsPage.pagination.total,
+                    done: doneExtsPage.error ? 0 : doneExtsPage.pagination.total,
+                    recentExtractions: extsPage.error ? [] : (extsPage.data ?? [])
                 },
                 onboarding: {
-                    hasTemplate: templates.length > 0,
-                    hasDocument: documents.length > 0,
-                    hasExtraction: extractions.length > 0,
+                    hasTemplate: !tmpsPage.error && tmpsPage.pagination.total > 0,
+                    hasDocument: !docsPage.error && docsPage.pagination.total > 0,
+                    hasExtraction: !extsPage.error && extsPage.pagination.total > 0,
                     hasApiToken: apiTokens.length > 0
                 },
                 usage

@@ -1,10 +1,10 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, count } from 'drizzle-orm'
 import { documents, extractions } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
 import { zValidator } from '@/lib/utils'
-import { idParamSchema } from '@/lib/validators'
+import { idParamSchema, pageQuerySchema } from '@/lib/validators'
 import { rateLimit, keyByUser } from '@/middleware/rate-limit'
 import { buildObjectKey, sanitizeFilename } from '@/lib/filenames'
 import { sniffFile } from '@/lib/mime-sniff'
@@ -19,16 +19,30 @@ const router = new Hono<{
 router.use('*', authMiddleware)
 
 // List documents
-router.get('/', async (c) => {
+router.get('/', zValidator('query', pageQuerySchema), async (c) => {
     const userId = c.get('userId')
+    const { page, limit } = c.req.valid('query')
+    const offset = (page - 1) * limit
     const db = drizzle(c.env.DB)
+
+    const [{ total }] = await db
+        .select({ total: count() })
+        .from(documents)
+        .where(eq(documents.userId, userId))
+
     const docs = await db
         .select()
         .from(documents)
         .where(eq(documents.userId, userId))
         .orderBy(desc(documents.createdAt))
+        .limit(limit)
+        .offset(offset)
 
-    return c.json({ data: docs, error: false })
+    return c.json({
+        data: docs,
+        error: false,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+    })
 })
 
 // Get single document
