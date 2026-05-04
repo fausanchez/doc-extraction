@@ -12,3 +12,4 @@ export const urlProfile = () => `/profile`
 export const urlBilling = () => `/billing`
 export const urlApiTokens = () => `/api-tokens`
 export const urlSettings = () => `/settings`
+export const urlData = () => `/data`

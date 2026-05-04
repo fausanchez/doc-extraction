@@ -36,6 +36,7 @@ import {
     LogOut,
     Search,
     Settings,
+    Shield,
     Sparkles,
     BookOpen
 } from 'lucide-react'
@@ -52,6 +53,7 @@ import {
     urlBilling,
     urlApiTokens,
     urlSettings,
+    urlData,
     urlLogin
 } from '@/urls'
 
@@ -216,6 +218,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         <Settings />
                                         Settings
                                         <DropdownMenuShortcut>⌘,</DropdownMenuShortcut>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link to={urlData()} viewTransition>
+                                        <Shield />
+                                        Your data
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onSelect={openWizard}>

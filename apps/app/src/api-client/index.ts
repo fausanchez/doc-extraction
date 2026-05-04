@@ -305,7 +305,19 @@ export type UsageResponse = {
 }
 
 export const meApi = {
-    usage: () => apiClient.get('me/usage').json<ApiResponse<UsageResponse>>()
+    usage: () => apiClient.get('me/usage').json<ApiResponse<UsageResponse>>(),
+    exportData: async (): Promise<void> => {
+        const data = await apiClient.get('me/export').json<ApiResponse<unknown>>()
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `dvop-data-export-${new Date().toISOString().slice(0, 10)}.json`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+    }
 }
 
 // API tokens
