@@ -45,4 +45,10 @@ interface CloudflareBindings {
     SENTRY_DSN?: string
     // Deployment environment label surfaced in Sentry events (development | develop | production).
     ENVIRONMENT?: string
+
+    // Paddle billing. Set via `wrangler secret put` — never commit plaintext values.
+    // PADDLE_SECRET_KEY is the server-side API key for Paddle API calls.
+    // PADDLE_WEBHOOK_SECRET is the endpoint secret used to verify webhook signatures.
+    PADDLE_SECRET_KEY?: string
+    PADDLE_WEBHOOK_SECRET?: string
 }
