@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { eq, and, desc, count } from 'drizzle-orm'
+import { eq, and, desc, count, isNull } from 'drizzle-orm'
 import { documents, extractions } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
 import { zValidator } from '@/lib/utils'
@@ -25,15 +25,17 @@ router.get('/', zValidator('query', pageQuerySchema), async (c) => {
     const offset = (page - 1) * limit
     const db = drizzle(c.env.DB)
 
+    const where = and(eq(documents.userId, userId), isNull(documents.deletedAt))
+
     const [{ total }] = await db
         .select({ total: count() })
         .from(documents)
-        .where(eq(documents.userId, userId))
+        .where(where)
 
     const docs = await db
         .select()
         .from(documents)
-        .where(eq(documents.userId, userId))
+        .where(where)
         .orderBy(desc(documents.createdAt))
         .limit(limit)
         .offset(offset)
@@ -54,7 +56,7 @@ router.get('/:id', zValidator('param', idParamSchema), async (c) => {
     const doc = await db
         .select()
         .from(documents)
-        .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+        .where(and(eq(documents.id, id), eq(documents.userId, userId), isNull(documents.deletedAt)))
         .limit(1)
 
     if (doc.length === 0) {
@@ -64,7 +66,7 @@ router.get('/:id', zValidator('param', idParamSchema), async (c) => {
     const docExtractions = await db
         .select()
         .from(extractions)
-        .where(eq(extractions.documentId, id))
+        .where(and(eq(extractions.documentId, id), isNull(extractions.deletedAt)))
         .orderBy(desc(extractions.createdAt))
 
     return c.json({ data: { ...doc[0], extractions: docExtractions }, error: false })
@@ -85,7 +87,7 @@ router.get(
         const [doc] = await db
             .select()
             .from(documents)
-            .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+            .where(and(eq(documents.id, id), eq(documents.userId, userId), isNull(documents.deletedAt)))
             .limit(1)
 
         if (!doc) {
@@ -181,24 +183,33 @@ router.post(
     }
 )
 
-// Delete document
+// Delete document — soft-delete the document and all its extractions so data
+// can be recovered or audited. The R2 object is intentionally kept; a separate
+// background job (or manual admin action) can purge orphaned files later.
 router.delete('/:id', zValidator('param', idParamSchema), async (c) => {
     const userId = c.get('userId')
     const { id } = c.req.valid('param')
     const db = drizzle(c.env.DB)
 
-    const doc = await db
+    const [doc] = await db
         .select()
         .from(documents)
-        .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+        .where(and(eq(documents.id, id), eq(documents.userId, userId), isNull(documents.deletedAt)))
         .limit(1)
 
-    if (doc.length === 0) {
+    if (!doc) {
         return c.json({ data: null, error: true, message: 'Document not found' }, 404)
     }
 
-    await c.env.BUCKET.delete(doc[0]!.filePath)
-    await db.delete(documents).where(eq(documents.id, id))
+    const now = Date.now()
+    await db
+        .update(extractions)
+        .set({ deletedAt: now })
+        .where(and(eq(extractions.documentId, id), isNull(extractions.deletedAt)))
+    await db
+        .update(documents)
+        .set({ deletedAt: now })
+        .where(eq(documents.id, id))
 
     return c.json({ data: null, error: false })
 })

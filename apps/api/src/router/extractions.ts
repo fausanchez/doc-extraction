@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { drizzle } from 'drizzle-orm/d1'
-import { eq, and, desc, count } from 'drizzle-orm'
+import { eq, and, desc, count, isNull } from 'drizzle-orm'
 import { documents, extractions, templates } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
 import { zValidator } from '@/lib/utils'
@@ -26,8 +26,8 @@ router.get('/', zValidator('query', listQuerySchema), async (c) => {
     const db = drizzle(c.env.DB)
 
     const where = status
-        ? and(eq(extractions.userId, userId), eq(extractions.status, status))
-        : eq(extractions.userId, userId)
+        ? and(eq(extractions.userId, userId), eq(extractions.status, status), isNull(extractions.deletedAt))
+        : and(eq(extractions.userId, userId), isNull(extractions.deletedAt))
 
     const [{ total }] = await db
         .select({ total: count() })
@@ -58,7 +58,7 @@ router.get('/:id', zValidator('param', idParamSchema), async (c) => {
     const ext = await db
         .select()
         .from(extractions)
-        .where(and(eq(extractions.id, id), eq(extractions.userId, userId)))
+        .where(and(eq(extractions.id, id), eq(extractions.userId, userId), isNull(extractions.deletedAt)))
         .limit(1)
 
     if (ext.length === 0) {
@@ -104,7 +104,7 @@ router.post(
         const [doc] = await db
             .select()
             .from(documents)
-            .where(and(eq(documents.id, documentId), eq(documents.userId, userId)))
+            .where(and(eq(documents.id, documentId), eq(documents.userId, userId), isNull(documents.deletedAt)))
             .limit(1)
 
         if (!doc) {

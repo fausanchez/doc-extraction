@@ -129,7 +129,8 @@ export const documents = sqliteTable(
         updatedAt: text('updated_at')
             .notNull()
             .default(sql`(CURRENT_TIMESTAMP)`)
-            .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
+            .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+        deletedAt: integer('deleted_at')
     },
     (t) => [index('documents_user_id_idx').on(t.userId)]
 )
@@ -202,7 +203,8 @@ export const extractions = sqliteTable(
         updatedAt: text('updated_at')
             .notNull()
             .default(sql`(CURRENT_TIMESTAMP)`)
-            .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`)
+            .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+        deletedAt: integer('deleted_at')
     },
     (t) => [
         index('extractions_user_id_idx').on(t.userId),

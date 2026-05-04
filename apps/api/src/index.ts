@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { securityHeaders } from './middleware/security-headers'
 import router from './router'
+import * as Sentry from '@sentry/cloudflare'
 
 const app = new Hono<{ Bindings: CloudflareBindings }>()
 
@@ -58,4 +59,12 @@ app.use('*', async (c, next) => {
 
 app.route('/', router)
 
-export default { fetch: app.fetch }
+// Sentry is a no-op when SENTRY_DSN is not set — safe for local dev.
+export default Sentry.withSentry(
+    (env: CloudflareBindings) => ({
+        dsn: env.SENTRY_DSN ?? '',
+        environment: env.ENVIRONMENT ?? 'development',
+        tracesSampleRate: 0.1
+    }),
+    { fetch: app.fetch }
+)
