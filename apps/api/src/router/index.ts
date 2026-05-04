@@ -7,6 +7,7 @@ import productsRouter from './products'
 import meRouter from './me'
 import apiTokensRouter from './api-tokens'
 import feedbackRouter from './feedback'
+import paddleRouter from './paddle'
 import v1Router from './v1'
 import { selectProvider } from '@/lib/extraction'
 
@@ -62,6 +63,7 @@ router.route('/templates', templatesRouter)
 router.route('/extractions', extractionsRouter)
 router.route('/api-tokens', apiTokensRouter)
 router.route('/feedback', feedbackRouter)
+router.route('/paddle', paddleRouter)
 
 // Public programmatic API. Authenticates with `Authorization: Bearer
 // dvop_live_…` (an API token managed under /api-tokens). Versioned prefix

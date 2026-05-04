@@ -1,15 +1,17 @@
+import { useEffect, useRef } from 'react'
 import { useLoaderData } from 'react-router'
+import { useAtomValue } from 'jotai'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@repo/ui/components/ui/card.tsx'
 import { Button } from '@repo/ui/components/ui/button.tsx'
 import { Badge } from '@repo/ui/components/ui/badge.tsx'
-import { Check, Sparkles } from 'lucide-react'
+import { Check, Sparkles, ExternalLink } from 'lucide-react'
 import { UsageCard } from '@/components/usage/usage-card'
+import { userAtom } from '@/stores/auth'
 import type { Price, Product } from '@/api-client'
 import type { route } from './route'
 
-// Display the catalogue alongside the user's current plan and usage. Checkout
-// isn't wired up yet — buttons explain that a contact / waitlist flow is
-// coming next, so the catalogue can ship without a payment integration.
+const PADDLE_CLIENT_TOKEN = import.meta.env.VITE_PADDLE_CLIENT_TOKEN as string | undefined
+const PADDLE_ENV = (import.meta.env.VITE_PADDLE_ENV as string | undefined) ?? 'production'
 
 function formatPrice(p: Price): string {
     if (p.interval === 'free' || p.amount === 0) return 'Free'
@@ -35,10 +37,61 @@ function planBullets(product: Product): string[] {
     ]
 }
 
+// Returns the best price to lead with: monthly > free > first available.
+function headlinePrice(product: Product): Price | undefined {
+    return (
+        product.prices.find((p) => p.interval === 'month') ??
+        product.prices.find((p) => p.interval === 'free') ??
+        product.prices[0]
+    )
+}
+
 export function Billing() {
     const { products, usage } = useLoaderData<typeof route.loader>()
+    const user = useAtomValue(userAtom)
+    const paddleReady = useRef(false)
 
     const currentSlug = usage?.product.slug ?? null
+
+    // Load Paddle.js once and initialize it. Checkout buttons call
+    // window.Paddle.Checkout.open() directly — no React state needed.
+    useEffect(() => {
+        if (!PADDLE_CLIENT_TOKEN || paddleReady.current) return
+
+        const script = document.createElement('script')
+        script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js'
+        script.async = true
+        script.onload = () => {
+            const P = (window as Record<string, unknown>)['Paddle'] as Record<string, unknown>
+            if (!P) return
+            if (PADDLE_ENV !== 'production') {
+                ;(P['Environment'] as Record<string, unknown>)['set']?.(PADDLE_ENV)
+            }
+            ;(P['Initialize'] as (opts: unknown) => void)?.({
+                token: PADDLE_CLIENT_TOKEN,
+                eventCallback: (ev: { name: string }) => {
+                    // After checkout completes, reload to reflect the new plan
+                    // (the webhook may take a few seconds; the page reload acts
+                    // as a soft refresh).
+                    if (ev.name === 'checkout.completed') {
+                        window.location.reload()
+                    }
+                }
+            })
+            paddleReady.current = true
+        }
+        document.head.appendChild(script)
+    }, [])
+
+    function openCheckout(priceId: string) {
+        const P = (window as Record<string, unknown>)['Paddle'] as Record<string, unknown> | undefined
+        if (!P) return
+        ;(P['Checkout'] as Record<string, unknown>)['open']?.({
+            items: [{ priceId, quantity: 1 }],
+            customer: user?.email ? { email: user.email } : undefined,
+            customData: user?.id ? { userId: String(user.id) } : undefined
+        })
+    }
 
     return (
         <div className="flex flex-col gap-6">
@@ -72,10 +125,9 @@ export function Billing() {
                 <div className="grid gap-4 md:grid-cols-3">
                     {products.map((product) => {
                         const isCurrent = product.slug === currentSlug
-                        const headline =
-                            product.prices.find((p) => p.interval === 'month') ??
-                            product.prices.find((p) => p.interval === 'free') ??
-                            product.prices[0]
+                        const headline = headlinePrice(product)
+                        const isFree = product.prices.every((p) => p.interval === 'free' || p.amount === 0)
+
                         return (
                             <Card key={product.id} className={isCurrent ? 'border-primary' : ''}>
                                 <CardHeader>
@@ -115,14 +167,43 @@ export function Billing() {
                                         ))}
                                     </ul>
 
-                                    <Button
-                                        variant={isCurrent ? 'outline' : 'default'}
-                                        disabled
-                                        className="w-full"
-                                        title="Checkout coming soon"
-                                    >
-                                        {isCurrent ? 'Current plan' : 'Coming soon'}
-                                    </Button>
+                                    {isCurrent ? (
+                                        // Show "Manage" link only if they have a Paddle subscription
+                                        usage?.product.slug !== 'free' && !isFree ? (
+                                            <Button
+                                                variant="outline"
+                                                className="w-full gap-2"
+                                                onClick={() =>
+                                                    window.open(
+                                                        'https://billing.paddle.com/checkout/subscription/manage',
+                                                        '_blank'
+                                                    )
+                                                }
+                                            >
+                                                <ExternalLink className="size-4" />
+                                                Manage subscription
+                                            </Button>
+                                        ) : (
+                                            <Button variant="outline" disabled className="w-full">
+                                                Current plan
+                                            </Button>
+                                        )
+                                    ) : isFree ? (
+                                        <Button variant="outline" disabled className="w-full">
+                                            Free plan
+                                        </Button>
+                                    ) : PADDLE_CLIENT_TOKEN && headline?.providerPriceId ? (
+                                        <Button
+                                            className="w-full"
+                                            onClick={() => openCheckout(headline.providerPriceId)}
+                                        >
+                                            Upgrade to {product.name}
+                                        </Button>
+                                    ) : (
+                                        <Button disabled className="w-full">
+                                            Coming soon
+                                        </Button>
+                                    )}
                                 </CardContent>
                             </Card>
                         )

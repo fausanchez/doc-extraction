@@ -64,6 +64,11 @@ export const users = sqliteTable('users', {
     // GitHubUser` always sets it on insert. Reads should still tolerate
     // NULL by falling back to the default product.
     productId: integer('product_id').references(() => products.id),
+    // Paddle billing identifiers. NULL until the user subscribes to a paid plan.
+    paddleCustomerId: text('paddle_customer_id'),
+    paddleSubscriptionId: text('paddle_subscription_id'),
+    // Mirrors Paddle's subscription status: active | trialing | past_due | paused | canceled
+    paddleSubscriptionStatus: text('paddle_subscription_status'),
     createdAt: integer('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updated_at')
         .notNull()
