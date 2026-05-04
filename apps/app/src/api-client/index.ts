@@ -164,6 +164,17 @@ export const documentsApi = {
         formData.append('file', file)
         return apiClient.post('documents/upload', { body: formData }).json<ApiResponse<Document>>()
     },
+    download: async (id: number, filename: string): Promise<void> => {
+        const blob = await apiClient.get(`documents/${id}/download`).blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+    },
     delete: (id: number) => apiClient.delete(`documents/${id}`).json<ApiResponse<null>>()
 }
 

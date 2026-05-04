@@ -16,7 +16,8 @@ import {
     CheckCircle2,
     AlertCircle,
     Clock,
-    Loader2
+    Loader2,
+    Download
 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { documentsApi, type Document } from '@/api-client'
@@ -64,6 +65,8 @@ export function Documents() {
     const [searchParams, setSearchParams] = useSearchParams()
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [uploading, setUploading] = useState(false)
+    const [deletingId, setDeletingId] = useState<number | null>(null)
+    const [downloadingId, setDownloadingId] = useState<number | null>(null)
 
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
 
@@ -89,13 +92,27 @@ export function Documents() {
         }
     }
 
+    const handleDownload = async (doc: Document) => {
+        setDownloadingId(doc.id)
+        try {
+            await documentsApi.download(doc.id, doc.name)
+        } catch {
+            toast.error('Failed to download document')
+        } finally {
+            setDownloadingId(null)
+        }
+    }
+
     const handleDelete = async (doc: Document) => {
+        setDeletingId(doc.id)
         try {
             await documentsApi.delete(doc.id)
             toast.success('Document deleted')
             revalidate()
         } catch {
             toast.error('Failed to delete document')
+        } finally {
+            setDeletingId(null)
         }
     }
 
@@ -178,12 +195,24 @@ export function Documents() {
                                 </div>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon-sm" aria-label="Actions">
-                                            <MoreHorizontal className="size-3.5" />
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            aria-label="Actions"
+                                            disabled={deletingId === doc.id || downloadingId === doc.id}
+                                        >
+                                            {deletingId === doc.id || downloadingId === doc.id ? (
+                                                <Loader2 className="size-3.5 animate-spin" />
+                                            ) : (
+                                                <MoreHorizontal className="size-3.5" />
+                                            )}
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-44">
-                                        <DropdownMenuItem disabled>Download</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => handleDownload(doc)}>
+                                            <Download />
+                                            Download
+                                        </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
                                             variant="destructive"
