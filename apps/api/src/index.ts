@@ -32,7 +32,9 @@ app.use('*', (c, next) =>
         credentials: true,
         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'Authorization'],
-        maxAge: 600
+        // 24 h preflight cache — browsers re-validate infrequently changing
+        // CORS policy once per day instead of on every cross-origin request.
+        maxAge: 86400
     })(c, next)
 )
 
